@@ -10,8 +10,6 @@ AccessoriesShortcuts=2, %ACCESSORIES%
 SystemToolsShortcuts=2, %ACCESSORIES%\%SYSTOOLS%
 AccessibilityShortcuts=2, %ACCESSORIES%\%ACCESSIBILITY%
 EntertainmentShortcuts=2, %ACCESSORIES%\%ENTERTAINMENT%
-CommunicationsShortcuts=2, %ACCESSORIES%\%COMMUNICATIONS%
-GamesShortcuts=2, %GAMES%
 
 [DesktopShortcuts]
 %SystemRoot%\readme.txt, %README_TITLE%, %README_DESC%
@@ -28,14 +26,10 @@ GamesShortcuts=2, %GAMES%
 %SystemRoot%\system32\eventvwr.exe, %EVENTVWR_TITLE%, %EVENTVWR_DESC%, 0
 %SystemRoot%\system32\msconfig.exe, %MSCONFIG_TITLE%, %MSCONFIG_DESC%, 0
 
-[CommunicationsShortcuts]
-%SystemRoot%\system32\mstsc.exe, %MSTSC_TITLE%, %MSTSC_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
-
 [AccessoriesShortcuts]
 %SystemRoot%\system32\calc.exe, %CALC_TITLE%, %CALC_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 %SystemRoot%\system32\cmd.exe, %CMD_TITLE%, %CMD_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 %SystemRoot%\system32\notepad.exe, %NOTEPAD_TITLE%, %NOTEPAD_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
-%SystemRoot%\system32\screenshot.exe, %SCREENSHOT_TITLE%, %SCREENSHOT_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 %SystemRoot%\system32\wordpad.exe, %WORDPAD_TITLE%, %WORDPAD_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 %SystemRoot%\system32\mspaint.exe, %MSPAINT_TITLE%, %MSPAINT_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 
@@ -56,12 +50,6 @@ GamesShortcuts=2, %GAMES%
 %SystemRoot%\system32\sndvol32.exe, %SNDVOL_TITLE%, %SNDVOL_DESC%, 0
 %SystemRoot%\system32\sndrec32.exe, %SNDREC32_TITLE%, %SNDREC32_DESC%, 0, %HOMEDRIVE%%HOMEPATH%
 
-[GamesShortcuts]
-%SystemRoot%\system32\sol.exe, %SOL_TITLE%, %SOL_DESC%, 0
-%SystemRoot%\system32\winmine.exe, %WINMINE_TITLE%, %WINMINE_DESC%, 0
-%SystemRoot%\system32\spider.exe, %SPIDER_TITLE%, %SPIDER_DESC%, 0
-
-
 ;-------------------------------- STRINGS -------------------------------
 
 [Strings]
@@ -70,7 +58,7 @@ SYSTOOLS=System Tools
 ACCESSIBILITY=Accessibility
 ENTERTAINMENT=Entertainment
 COMMUNICATIONS=Communications
-GAMES=Games
+;GAMES=Games
 
 README_TITLE=Read Me
 README_DESC=ReactOS Read-Me file
@@ -94,10 +82,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Launch Calculator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Launch Text Editor
-MSTSC_TITLE=Remote Desktop Connection
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Take screenshot
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Launch Document Editor
 MSPAINT_TITLE=Paint
@@ -124,12 +108,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Launch Volume Control
 SNDREC32_TITLE=Sound Recorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Bulgarian
 [Strings.0402]
@@ -138,7 +116,7 @@ SYSTOOLS=Системни средства
 ACCESSIBILITY=Достъпност
 ENTERTAINMENT=Забавление
 COMMUNICATIONS=Communications
-GAMES=Игри
+;GAMES=Игри
 
 CMD_TITLE=Команден прозорец
 CMD_DESC=Отваряне на командния прозорец
@@ -159,10 +137,6 @@ CALC_TITLE=Изчислител
 CALC_DESC=Пускане на изчислителя
 NOTEPAD_TITLE=Бележник
 NOTEPAD_DESC=Пускане на текстообратващата
-MSTSC_TITLE=Далечна работна площ
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=Снимка
-SCREENSHOT_DESC=Заснемане на екрана
 WORDPAD_TITLE=Тетрадка
 WORDPAD_DESC=Пускане на документната обработваща
 MSPAINT_TITLE=Рисунък
@@ -187,12 +161,6 @@ SNDVOL_TITLE=Сила на звука
 SNDVOL_DESC=Пускане на упрвлението на силата на звука
 SNDREC32_TITLE=Звукозаписвач
 SNDREC32_DESC=Пускане на Звукозаписвача
-SOL_TITLE=Пасианс
-SOL_DESC=Пасианс
-WINMINE_TITLE=Минички
-WINMINE_DESC=Минички
-SPIDER_TITLE=Пасианс „Паяк“
-SPIDER_DESC=Пасианс „Паяк“
 
 ; Czech
 [Strings.0405]
@@ -201,7 +169,7 @@ SYSTOOLS=Systémové nástroje
 ACCESSIBILITY=Usnadnění
 ENTERTAINMENT=Zábava
 COMMUNICATIONS=Communications
-GAMES=Hry
+;GAMES=Hry
 
 CMD_TITLE=Příkazový řádek
 CMD_DESC=Otevřít Příkazový řádek
@@ -222,10 +190,6 @@ CALC_TITLE=Kalkulačka
 CALC_DESC=Spustit Kalkulačku
 NOTEPAD_TITLE=Poznámkový blok
 NOTEPAD_DESC=Spustit Poznámkový blok
-MSTSC_TITLE=Vzdálená plocha
-MSTSC_DESC=Spustit Vzdálenou plochu
-SCREENSHOT_TITLE=Sejmout obrazovku
-SCREENSHOT_DESC=Sejmout obrazovku
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Spustit WordPad
 MSPAINT_TITLE=Malování
@@ -250,12 +214,6 @@ SNDVOL_TITLE=Ovládání hlasitosti
 SNDVOL_DESC=Spustit Ovládání hlasitosti
 SNDREC32_TITLE=Záznam zvuku
 SNDREC32_DESC=Spustit Záznam zvuku
-SOL_TITLE=Solitaire
-SOL_DESC=Spustit Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=Spustit WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; German
 [Strings.0407]
@@ -264,7 +222,7 @@ SYSTOOLS=Systemprogramme
 ACCESSIBILITY=Eingabehilfen
 ENTERTAINMENT=Unterhaltung
 COMMUNICATIONS=Kommunikation
-GAMES=Spiele
+;GAMES=Spiele
 
 README_TITLE=Lies Mich
 README_DESC=Lies-Mich Datei für ReactOS
@@ -288,10 +246,6 @@ CALC_TITLE=Rechner
 CALC_DESC=Starte Taschenrechner
 NOTEPAD_TITLE=Editor
 NOTEPAD_DESC=Starte Texteditor
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Remote Desktop Verbindung starten
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Screenshot erstellen
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Starte Dokumenteneditor
 MSPAINT_TITLE=Paint
@@ -316,12 +270,6 @@ SNDVOL_TITLE=Lautstärkeregelung
 SNDVOL_DESC=Starte Lautstärkeregelung
 SNDREC32_TITLE=Audiorekorder
 SNDREC32_DESC=Starte Audiorekorder
-SOL_TITLE=Solitär
-SOL_DESC=Solitär
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Greek
 [Strings.0408]
@@ -330,7 +278,7 @@ SYSTOOLS=Εργαλεία Συστήματος
 ACCESSIBILITY=Για άτομα με ειδικές ανάγκες
 ENTERTAINMENT=Διασκέδαση
 COMMUNICATIONS=Communications
-GAMES=Παιχνίδια
+;GAMES=Παιχνίδια
 
 CMD_TITLE=Γραμμή εντολών
 CMD_DESC=Open command prompt
@@ -351,10 +299,6 @@ CALC_TITLE=Αριθμομηχανή
 CALC_DESC=Αριθμομηχανή
 NOTEPAD_TITLE=Σημειωματάριο
 NOTEPAD_DESC=Σημειωματάριο
-MSTSC_TITLE=Σύνδεση απομακρυσμένης επιφάνειας εργασίας
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Take screenshot
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Launch Document Editor
 MSPAINT_TITLE=Paint
@@ -379,12 +323,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Launch Volume Control
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Πασιέντζα
-SOL_DESC=Πασιέντζα
-WINMINE_TITLE=Ναρκαλιευτής
-WINMINE_DESC=Ναρκαλιευτής
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Spanish
 [Strings.0a]
@@ -393,7 +331,7 @@ SYSTOOLS=Herramientas del sistema
 ACCESSIBILITY=Accesibilidad
 ENTERTAINMENT=Entretenimiento
 COMMUNICATIONS=Comunicaciones
-GAMES=Juegos
+;GAMES=Juegos
 
 README_TITLE=Léame
 README_DESC=Documento Léame de ReactOS
@@ -417,10 +355,6 @@ CALC_TITLE=Calculadora
 CALC_DESC=Ejecuta la calculadora.
 NOTEPAD_TITLE=Bloc de notas
 NOTEPAD_DESC=Ejecuta un editor de texto simple.
-MSTSC_TITLE=Escritorio remoto
-MSTSC_DESC=Ejecuta una conexión de escritorio remoto.
-SCREENSHOT_TITLE=Captura de pantalla
-SCREENSHOT_DESC=Guarda secciones de la pantalla como un archivo de imagen.
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Ejecuta un editor de documentos de texto enriquecido.
 MSPAINT_TITLE=Paint
@@ -445,12 +379,6 @@ SNDVOL_TITLE=Control de volumen
 SNDVOL_DESC=Ejecuta una utilidad con la que controlar la salida de audio.
 SNDREC32_TITLE=Grabadora de sonidos
 SNDREC32_DESC=Ejecuta una utilidad para grabar audio desde un micrófono conectado al equipo.
-SOL_TITLE=Solitario
-SOL_DESC=Jugar al popular juego de cartas de un sólo jugador.
-WINMINE_TITLE=Buscaminas
-WINMINE_DESC=Jugar al popular juego en el que se debe despejar un campo de minas sin detonar ninguna.
-SPIDER_TITLE=Solitario Spider
-SPIDER_DESC=Jugar al popular juego de cartas de un sólo jugador.
 
 ; Estonian
 [Strings.0425]
@@ -459,7 +387,7 @@ SYSTOOLS=Süsteemi tööriistad
 ACCESSIBILITY=Ligipääsetavus
 ENTERTAINMENT=Meelelahutus
 COMMUNICATIONS=Communications
-GAMES=Mängud
+;GAMES=Mängud
 
 CMD_TITLE=Command Prompt
 CMD_DESC=Ava käsurida
@@ -480,10 +408,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Ava Kalkulaator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Ava Tekstiredaktor
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Tee ekraanitõmmis
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Ava Dokumendiredaktor
 MSPAINT_TITLE=Paint
@@ -508,12 +432,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Ava Helitugevuse Kontroll
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; French
 [Strings.040C]
@@ -522,7 +440,7 @@ SYSTOOLS=Outils système
 ACCESSIBILITY=Accessibilité
 ENTERTAINMENT=Divertissement
 COMMUNICATIONS=Communications
-GAMES=Jeux
+;GAMES=Jeux
 
 README_TITLE=Lisez-Moi
 README_DESC=Fichier Lisez-Moi pour ReactOS
@@ -546,10 +464,6 @@ CALC_TITLE=Calculatrice
 CALC_DESC=Lancer la Calculatrice
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Lancer l'Éditeur de Texte
-MSTSC_TITLE=Bureau Distant
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=Capture d'écran
-SCREENSHOT_DESC=Faire une capture d'écran
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Lancer l'Éditeur de Documents
 MSPAINT_TITLE=Paint
@@ -576,12 +490,6 @@ SNDVOL_TITLE=Contrôleur de volume
 SNDVOL_DESC=Lancer le contrôleur de volume
 SNDREC32_TITLE=Enregistreur de son
 SNDREC32_DESC=Lancer l'enregistreur de son
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Hebrew
 [Strings.040D]
@@ -590,7 +498,7 @@ SYSTOOLS=כלי מערכת
 ACCESSIBILITY=נגישות
 ENTERTAINMENT=בידור
 COMMUNICATIONS=Communications
-GAMES=משחקים
+;GAMES=משחקים
 
 CMD_TITLE=שורת הפקודה
 CMD_DESC=שורת הפקודה
@@ -611,10 +519,6 @@ CALC_TITLE=מחשבון
 CALC_DESC=מחשבון
 NOTEPAD_TITLE=פנקס הרשימות
 NOTEPAD_DESC=עורך טקסט
-MSTSC_TITLE=שולחן עבודה מרוחק
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=צילום מסך
 WORDPAD_TITLE=כתבן
 WORDPAD_DESC=עורך המסמכים
 MSPAINT_TITLE=צייר
@@ -639,12 +543,6 @@ SNDVOL_TITLE=בקרת עוצמה
 SNDVOL_DESC=בקרת עוצמה
 SNDREC32_TITLE=רשמקול
 SNDREC32_DESC=רשמקול
-SOL_TITLE=סוליטייר
-SOL_DESC=סוליטייר
-WINMINE_TITLE=WineMine
-WINMINE_DESC=שולה המוקשים
-SPIDER_TITLE=סוליטייר עכביש
-SPIDER_DESC=סוליטייר עכביש
 
 ; Hungarian
 [Strings.040E]
@@ -653,7 +551,7 @@ SYSTOOLS=System Tools
 ACCESSIBILITY=Accessibility
 ENTERTAINMENT=Entertainment
 COMMUNICATIONS=Communications
-GAMES=Játékok
+;GAMES=Játékok
 
 CMD_TITLE=Command Prompt
 CMD_DESC=Open command prompt
@@ -674,10 +572,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Launch Calculator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Launch Text Editor
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Take screenshot
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Launch Document Editor
 MSPAINT_TITLE=Paint
@@ -702,12 +596,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Launch Volume Control
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Pasziánsz
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Indonesian
 [Strings.0421]
@@ -716,7 +604,7 @@ SYSTOOLS=System Tools
 ACCESSIBILITY=Accessibility
 ENTERTAINMENT=Entertainment
 COMMUNICATIONS=Communications
-GAMES=Games
+;GAMES=Games
 
 CMD_TITLE=Command Prompt
 CMD_DESC=Buka prompt perintah
@@ -737,10 +625,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Jalankan Kalkulator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Jalankan Editor Teks
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Ambil foto layar
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Jalankan Editor Dokumen
 MSPAINT_TITLE=Paint
@@ -765,12 +649,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Launch Volume Control
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Italian
 [Strings.0410]
@@ -779,7 +657,7 @@ SYSTOOLS=Strumenti di sistema
 ACCESSIBILITY=Accessibilità
 ENTERTAINMENT=Divertimento
 COMMUNICATIONS=Comunicazioni
-GAMES=Giochi
+;GAMES=Giochi
 
 README_TITLE=Leggimi
 README_DESC=File Leggimi per ReactOS
@@ -803,10 +681,6 @@ CALC_TITLE=Calcolatrice
 CALC_DESC=Calcolatrice
 NOTEPAD_TITLE=Blocco note
 NOTEPAD_DESC=Lancia l'editor dei testi
-MSTSC_TITLE=Connessione desktop remoto
-MSTSC_DESC=Avva la connessione a desktop remoto
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Salva una schermata
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Lancia l'editor dei documenti
 MSPAINT_TITLE=Paint
@@ -831,12 +705,6 @@ SNDVOL_TITLE=Controllo Volume
 SNDVOL_DESC=Esegui Controllo Volume
 SNDREC32_TITLE=Registratore di suoni
 SNDREC32_DESC=Esegui il registratore di suoni
-SOL_TITLE=Solitario
-SOL_DESC=Solitario
-WINMINE_TITLE=WineMine
-WINMINE_DESC=Campo minato
-SPIDER_TITLE=Spider
-SPIDER_DESC=Spider
 
 ; Japanese
 [Strings.0411]
@@ -845,7 +713,7 @@ SYSTOOLS=システムツール
 ACCESSIBILITY=アクセシビリティ
 ENTERTAINMENT=エンターテイメント
 COMMUNICATIONS=Communications
-GAMES=ゲーム
+;GAMES=ゲーム
 
 CMD_TITLE=コマンド プロンプト
 CMD_DESC=コマンド プロンプトを開きます
@@ -866,10 +734,6 @@ CALC_TITLE=電卓
 CALC_DESC=電卓を起動します
 NOTEPAD_TITLE=メモ帳
 NOTEPAD_DESC=テキストエディタを起動します
-MSTSC_TITLE=リモート デスクトップ接続
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=スナップショット
-SCREENSHOT_DESC=スクリーンショットを撮ります
 WORDPAD_TITLE=ワードパッド
 WORDPAD_DESC=ドキュメントエディタを起動します
 MSPAINT_TITLE=ペイント
@@ -894,12 +758,6 @@ SNDVOL_TITLE=ボリューム コントロール
 SNDVOL_DESC=ボリューム コントロールを起動します
 SNDREC32_TITLE=オーディオレコーダ
 SNDREC32_DESC=サウンド レコーダを起動します
-SOL_TITLE=ソリティア
-SOL_DESC=ソリティア
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=スパイダ ソリティア
-SPIDER_DESC=スパイダ ソリティア
 
 ; Dutch
 [Strings.0413]
@@ -908,7 +766,7 @@ SYSTOOLS=System Tools
 ACCESSIBILITY=Accessibility
 ENTERTAINMENT=Entertainment
 COMMUNICATIONS=Communications
-GAMES=Games
+;GAMES=Games
 
 README_TITLE=Lees Mij
 README_DESC=LeesMij bestand voor ReactOS
@@ -932,10 +790,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Launch Calculator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Launch Text Editor
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Take screenshot
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Launch Document Editor
 MSPAINT_TITLE=Paint
@@ -960,12 +814,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Launch Volume Control
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Norwegian
 [Strings.0414]
@@ -974,7 +822,7 @@ SYSTOOLS=Systemverktøy
 ACCESSIBILITY=Tilgjengelighet
 ENTERTAINMENT=Underholdning
 COMMUNICATIONS=Communications
-GAMES=Spill
+;GAMES=Spill
 
 CMD_TITLE=Command Prompt
 CMD_DESC=Åpne Kommandolinje
@@ -995,10 +843,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Start Kalkulator
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Start Tekstredigering
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Ta skjermbilde
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Start Dokument redigering
 MSPAINT_TITLE=Paint
@@ -1023,12 +867,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Start Volumkontroll
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Solitaire
-SOL_DESC=Kabal
-WINMINE_TITLE=WineMine
-WINMINE_DESC=Minnesveiper
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Polish
 [Strings.0415]
@@ -1037,7 +875,7 @@ SYSTOOLS=Narzędzia systemowe
 ACCESSIBILITY=Ułatwienia dostępu
 ENTERTAINMENT=Rozrywka
 COMMUNICATIONS=Komunikacja
-GAMES=Gry
+;GAMES=Gry
 
 CMD_TITLE=Wiersz polecenia
 CMD_DESC=Uruchom konsolę
@@ -1058,10 +896,6 @@ CALC_TITLE=Kalkulator
 CALC_DESC=Uruchom Kalkulator
 NOTEPAD_TITLE=Notatnik
 NOTEPAD_DESC=Uruchom Edytor tekstu
-MSTSC_TITLE=Dostęp zdalny
-MSTSC_DESC=Uruchom Dostęp zdalny
-SCREENSHOT_TITLE=Zrzut ekranu
-SCREENSHOT_DESC=Zrób zrzut ekranu
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Uruchom WordPada
 MSPAINT_TITLE=MSPaint
@@ -1086,12 +920,6 @@ SNDVOL_TITLE=Regulacja głośności
 SNDVOL_DESC=Uruchom regulację głośności
 SNDREC32_TITLE=Rejestrator dźwięku
 SNDREC32_DESC=Launch Sound Recorder
-SOL_TITLE=Pasjans
-SOL_DESC=Pasjans
-WINMINE_TITLE=Saper
-WINMINE_DESC=Saper
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Portuguese - Brazil
 [Strings.0416]
@@ -1100,7 +928,7 @@ SYSTOOLS=Ferramentas de Sistema
 ACCESSIBILITY=Acessibilidade
 ENTERTAINMENT=Entretenimento
 COMMUNICATIONS=Communications
-GAMES=Jogos
+;GAMES=Jogos
 
 README_TITLE=Leia-Me
 README_DESC=Arquivo de informações para ReactOS
@@ -1124,10 +952,6 @@ CALC_TITLE=Calculator
 CALC_DESC=Iniciar Calculadora
 NOTEPAD_TITLE=Notepad
 NOTEPAD_DESC=Iniciar Editor de Texto
-MSTSC_TITLE=Remote Desktop
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=SnapShot
-SCREENSHOT_DESC=Capturar Tela
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Iniciar Editor de Documentos
 MSPAINT_TITLE=Paint
@@ -1152,12 +976,6 @@ SNDVOL_TITLE=Volume Control
 SNDVOL_DESC=Iniciar Controle de Volume
 SNDREC32_TITLE=Audiorecorder
 SNDREC32_DESC=Iniciar Gravador de Som
-SOL_TITLE=Solitaire
-SOL_DESC=Paciência
-WINMINE_TITLE=WineMine
-WINMINE_DESC=WineMine
-SPIDER_TITLE=Spider Solitaire
-SPIDER_DESC=Spider Solitaire
 
 ; Romanian
 [Strings.0418]
@@ -1166,7 +984,7 @@ SYSTOOLS=Instrumente de sistem
 ACCESSIBILITY=Accesibilitate
 ENTERTAINMENT=Divertisment
 COMMUNICATIONS=Communicații
-GAMES=Jocuri
+;GAMES=Jocuri
 
 README_TITLE=De citit
 README_DESC=Fișier de informare ReactOS
@@ -1190,10 +1008,6 @@ CALC_TITLE=Minicalculator
 CALC_DESC=Program pentru calcule manuale.
 NOTEPAD_TITLE=Carnețel
 NOTEPAD_DESC=Editorul de text simplu.
-MSTSC_TITLE=Birou la distanță
-MSTSC_DESC=Program pentru conectarea și autentificarea la un alt birou.
-SCREENSHOT_TITLE=Captură de ecran
-SCREENSHOT_DESC=Program pentru executarea de capturi de ecran.
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Editor de documente.
 MSPAINT_TITLE=Pictare
@@ -1220,12 +1034,6 @@ SNDVOL_TITLE=Reglaj de volum
 SNDVOL_DESC=Panou cu reglaje pentru volumul sunetului înregistrat sau lecturat.
 SNDREC32_TITLE=Înregistrator audio
 SNDREC32_DESC=Program pentru înregistrare a sunetelor prin microfon.
-SOL_TITLE=Pasiență
-SOL_DESC=Joc de pasiență.
-WINMINE_TITLE=Genist
-WINMINE_DESC=Joc de deminare.
-SPIDER_TITLE=Pasiență-păianjen
-SPIDER_DESC=Joc de pasiență.
 
 ; Russian
 [Strings.0419]
@@ -1234,7 +1042,7 @@ SYSTOOLS=Служебные
 ACCESSIBILITY=Специальные возможности
 ENTERTAINMENT=Развлечения
 COMMUNICATIONS=Связь
-GAMES=Игры
+;GAMES=Игры
 
 README_TITLE=Прочти Меня
 README_DESC=файл ReadMe для ReactOS
@@ -1258,10 +1066,6 @@ CALC_TITLE=Калькулятор
 CALC_DESC=Электронный ''Калькулятор'' вполне способен заменить обычный ручной калькулятор.
 NOTEPAD_TITLE=Блокнот
 NOTEPAD_DESC=Используется для создания и редактирования текстовых файлов простого формата.
-MSTSC_TITLE=Подключение к удаленному рабочему столу
-MSTSC_DESC=Этот компьютер можно использовать для подключения к другому компьютеру, чтобы запускать на нем программы и получать доступ к файлам.
-SCREENSHOT_TITLE=Скриншот
-SCREENSHOT_DESC=Сделать снимок экрана
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Используется для создания и редактирования текстовых файлов со сложным форматированием.
 MSPAINT_TITLE=Paint
@@ -1288,12 +1092,6 @@ SNDVOL_TITLE=Громкость
 SNDVOL_DESC=Запустить регулятор громкости
 SNDREC32_TITLE=Звукозапись
 SNDREC32_DESC=Запишите звук и сохраните его на своем компьютере.
-SOL_TITLE=Пасьянс Косынка
-SOL_DESC=Пасьянс Косынка
-WINMINE_TITLE=Сапер
-WINMINE_DESC=Сапер
-SPIDER_TITLE=Пасьянс Паук
-SPIDER_DESC=Пасьянс Паук
 
 ; Slovak
 [Strings.041B]
@@ -1302,7 +1100,7 @@ SYSTOOLS=Systémové nástroje
 ACCESSIBILITY=Zjednodušenie ovládania
 ENTERTAINMENT=Zábava
 COMMUNICATIONS=Communications
-GAMES=Hry
+;GAMES=Hry
 
 CMD_TITLE=Príkazový riadok
 CMD_DESC=Otvoriť Príkazový riadok
@@ -1323,10 +1121,6 @@ CALC_TITLE=Kalkulačka
 CALC_DESC=Spustiť Kalkulačku
 NOTEPAD_TITLE=Poznámkový blok
 NOTEPAD_DESC=Spustiť Textový editor
-MSTSC_TITLE=Vzdialená pracovná plocha
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=Momentka //SnapShot
-SCREENSHOT_DESC=Uložiť obrazovku
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Spustiť Editor dokumentov
 MSPAINT_TITLE=Skicár
@@ -1351,12 +1145,6 @@ SNDVOL_TITLE=Ovládanie hlasitosti //Volume Control
 SNDVOL_DESC=Spustiť Ovládanie hlasitosti
 SNDREC32_TITLE=Audiorekordér
 SNDREC32_DESC=Spustiť Nahrávanie zvuku
-SOL_TITLE=Solitér
-SOL_DESC=Solitér
-WINMINE_TITLE=Míny
-WINMINE_DESC=Míny
-SPIDER_TITLE=Pavúčí solitér
-SPIDER_DESC=Pavúčí solitér
 
 ; Turkish
 [Strings.041f]
@@ -1365,7 +1153,7 @@ SYSTOOLS=Dizge Araçları
 ACCESSIBILITY=Erişilebilirlik
 ENTERTAINMENT=Eğlence
 COMMUNICATIONS=İletişim
-GAMES=Oyunlar
+;GAMES=Oyunlar
 
 README_TITLE=Benioku
 README_DESC=ReactOS Benioku
@@ -1389,10 +1177,6 @@ CALC_TITLE=Hesap Makinesi
 CALC_DESC=Hesap Makinesi'ni başlat
 NOTEPAD_TITLE=Not Defteri
 NOTEPAD_DESC=Metin Düzenleyicisi'ni başlat
-MSTSC_TITLE=Uzak Masaüstü Bağlantısı
-MSTSC_DESC=Uzak Masaüstü Bağlantısı'nı başlat
-SCREENSHOT_TITLE=Ekran Görüntüsü
-SCREENSHOT_DESC=Ekran görüntüsü al
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Belge Düzenleyicisi'ni başlat
 MSPAINT_TITLE=Paint
@@ -1417,12 +1201,6 @@ SNDVOL_TITLE=Ses Denetimi
 SNDVOL_DESC=Ses Denetimi'ni başlat
 SNDREC32_TITLE=Ses Kaydedicisi
 SNDREC32_DESC=Ses Kaydedicisi'ni başlat
-SOL_TITLE=Solitaire
-SOL_DESC=Solitaire
-WINMINE_TITLE=Mayın Tarlası
-WINMINE_DESC=Mayın Tarlası
-SPIDER_TITLE=Örümcek Solitaire
-SPIDER_DESC=Örümcek Solitaire
 
 ; Ukrainian
 [Strings.0422]
@@ -1431,7 +1209,7 @@ SYSTOOLS=Службові
 ACCESSIBILITY=Спеціальні можливості
 ENTERTAINMENT=Розваги
 COMMUNICATIONS=Communications
-GAMES=Ігри
+;GAMES=Ігри
 
 README_TITLE=Прочитай Мене
 README_DESC=файл ReadMe для ReactOS
@@ -1455,10 +1233,6 @@ CALC_TITLE=Калькулятор
 CALC_DESC=Запустити Калькулятор
 NOTEPAD_TITLE=Блокнот
 NOTEPAD_DESC=Запустити Текстовий редактор
-MSTSC_TITLE=Віддалене керування робочим столом
-MSTSC_DESC=Launch Remote Desktop Connection
-SCREENSHOT_TITLE=Знімок екрану
-SCREENSHOT_DESC=Зробити знімок екрана
 WORDPAD_TITLE=WordPad
 WORDPAD_DESC=Запустити Редактор документів
 MSPAINT_TITLE=Paint
@@ -1483,12 +1257,6 @@ SNDVOL_TITLE=Регулятор гучності
 SNDVOL_DESC=Запуск регулятора гучності
 SNDREC32_TITLE=Записувач звуку
 SNDREC32_DESC=Запуск записувача звуку
-SOL_TITLE=Косинка
-SOL_DESC=Косинка
-WINMINE_TITLE=WineMine
-WINMINE_DESC=Сапер
-SPIDER_TITLE=Пас'янс Павук
-SPIDER_DESC=Пас'янс Павук
 
 ; Chinese
 [Strings.0804]
@@ -1497,7 +1265,7 @@ SYSTOOLS=系统工具
 ACCESSIBILITY=辅助功能
 ENTERTAINMENT=娱乐
 COMMUNICATIONS=通信
-GAMES=游戏
+;GAMES=游戏
 
 CMD_TITLE=命令提示符
 CMD_DESC=命令提示符
@@ -1518,10 +1286,6 @@ CALC_TITLE=计算器
 CALC_DESC=计算器
 NOTEPAD_TITLE=记事本
 NOTEPAD_DESC=记事本
-MSTSC_TITLE=远程桌面连接
-MSTSC_DESC=启动远程桌面连接
-SCREENSHOT_TITLE=屏幕截图
-SCREENSHOT_DESC=屏幕截图
 WORDPAD_TITLE=写字板
 WORDPAD_DESC=写字板
 MSPAINT_TITLE=小画家
@@ -1546,9 +1310,3 @@ SNDVOL_TITLE=音量控制
 SNDVOL_DESC=启动音量控制
 SNDREC32_TITLE=录音机
 SNDREC32_DESC=启动录音机
-SOL_TITLE=纸牌
-SOL_DESC=纸牌
-WINMINE_TITLE=扫雷
-WINMINE_DESC=扫雷
-SPIDER_TITLE=蜘蛛纸牌
-SPIDER_DESC=蜘蛛纸牌

@@ -808,7 +808,9 @@ USBAudioPinCreate(
     }
 
     /* choose correct dataformat */
-    FormatIndex = GetDataRangeIndexForFormat(Pin->ConnectionFormat, Pin->Descriptor->PinDescriptor.DataRanges, Pin->Descriptor->PinDescriptor.DataRangesCount);
+    // Change is to force enable the driver. Revert this.
+    FormatIndex=0;
+    /*FormatIndex = GetDataRangeIndexForFormat(Pin->ConnectionFormat, Pin->Descriptor->PinDescriptor.DataRanges, Pin->Descriptor->PinDescriptor.DataRangesCount);*/
     if (FormatIndex == MAXULONG)
     {
         /* no format match */
