@@ -30,10 +30,10 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
-#include <uxtheme.h>
 #include <strsafe.h>
 
 #include <undocuser.h>
+#include <commctrl.h>
 #include <shlwapi_undoc.h>
 #include <shlobj_undoc.h>
 #include <shlguid_undoc.h>
@@ -42,7 +42,6 @@
 #include <rosctrls.h>
 #include <shellutils.h>
 
-#include "tmschema.h"
 #include "resource.h"
 
 #include <wine/debug.h>

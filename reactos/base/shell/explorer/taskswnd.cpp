@@ -208,7 +208,6 @@ class CTaskSwitchWnd :
     PTASK_ITEM m_TaskItems;
     PTASK_ITEM m_ActiveTaskItem;
 
-    HTHEME m_Theme;
     UINT m_ButtonsPerLine;
     WORD m_ButtonCount;
 
@@ -227,7 +226,7 @@ public:
         m_TaskGroups(NULL),
         m_TaskItems(NULL),
         m_ActiveTaskItem(NULL),
-        m_Theme(NULL),
+        
         m_ButtonsPerLine(0),
         m_ButtonCount(0),
         m_ImageList(NULL),
@@ -1180,7 +1179,7 @@ public:
 
                 /* We might need to update the button spacing */
                 int cxButtonSpacing = m_TaskBar.UpdateTbButtonSpacing(
-                    Horizontal, m_Theme != NULL,
+                    Horizontal, FALSE,
                     uiRows, uiBtnsPerLine);
 
                 /* Determine the minimum and maximum width of a button */
@@ -1288,22 +1287,13 @@ public:
 
     LRESULT OnThemeChanged()
     {
-        TRACE("OmThemeChanged\n");
-
-        if (m_Theme)
-            CloseThemeData(m_Theme);
-
-        if (IsThemeActive())
-            m_Theme = OpenThemeData(m_hWnd, L"TaskBand");
-        else
-            m_Theme = NULL;
-
-        return TRUE;
+        return FALSE;
     }
 
     LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return OnThemeChanged();
+        bHandled=0;
+        return FALSE;
     }
 
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -1311,14 +1301,11 @@ public:
         if (!m_TaskBar.Initialize(m_hWnd))
             return FALSE;
 
-        SetWindowTheme(m_TaskBar.m_hWnd, L"TaskBand", NULL);
-        OnThemeChanged();
-
         m_ImageList = ImageList_Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 1000);
         m_TaskBar.SetImageList(m_ImageList);
 
         /* Set proper spacing between buttons */
-        m_TaskBar.UpdateTbButtonSpacing(m_Tray->IsHorizontal(), m_Theme != NULL);
+        m_TaskBar.UpdateTbButtonSpacing(m_Tray->IsHorizontal(), FALSE);
 
         /* Register the shell hook */
         m_ShellHookMsg = RegisterWindowMessageW(L"SHELLHOOK");
@@ -1345,7 +1332,6 @@ public:
         /* Unregister the shell hook */
         RegisterShellHook(m_hWnd, FALSE);
 
-        CloseThemeData(m_Theme);
         DeleteAllTasks();
         return TRUE;
     }
@@ -1591,19 +1577,12 @@ public:
                 if (nmtbcd->nmcd.uItemState & CDIS_MARKED)
                 {
                     Ret = TBCDRF_NOBACKGROUND;
-                    if (!m_Theme)
-                    {
-                        SelectObject(nmtbcd->nmcd.hdc, GetSysColorBrush(COLOR_HIGHLIGHT));
-                        Rectangle(nmtbcd->nmcd.hdc,
+                    SelectObject(nmtbcd->nmcd.hdc, GetSysColorBrush(COLOR_HIGHLIGHT));
+                    Rectangle(nmtbcd->nmcd.hdc,
                             nmtbcd->nmcd.rc.left,
                             nmtbcd->nmcd.rc.top,
                             nmtbcd->nmcd.rc.right,
                             nmtbcd->nmcd.rc.bottom);
-                    }
-                    else
-                    {
-                        DrawThemeBackground(m_Theme, nmtbcd->nmcd.hdc, TDP_FLASHBUTTON, 0, &nmtbcd->nmcd.rc, 0);
-                    }
                     nmtbcd->clrText = GetSysColor(COLOR_HIGHLIGHTTEXT);
                     return Ret;
                 }
@@ -1650,25 +1629,13 @@ public:
 
     LRESULT DrawBackground(HDC hdc)
     {
-        RECT rect;
-
-        GetClientRect(&rect);
-        DrawThemeParentBackground(m_hWnd, hdc, &rect);
-
-        return TRUE;
+        return FALSE;
     }
 
     LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        HDC hdc = (HDC) wParam;
-
-        if (!IsAppThemed())
-        {
-            bHandled = FALSE;
-            return 0;
-        }
-
-        return DrawBackground(hdc);
+        bHandled = FALSE;
+        return 0;
     }
 
     LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -1732,7 +1699,7 @@ public:
     LRESULT OnUpdateTaskbarPos(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
         /* Update the button spacing */
-        m_TaskBar.UpdateTbButtonSpacing(m_Tray->IsHorizontal(), m_Theme != NULL);
+        m_TaskBar.UpdateTbButtonSpacing(m_Tray->IsHorizontal(), FALSE);
         return TRUE;
     }
 
@@ -1819,7 +1786,6 @@ public:
     DECLARE_WND_CLASS_EX(szTaskSwitchWndClass, CS_DBLCLKS, COLOR_3DFACE)
 
     BEGIN_MSG_MAP(CTaskSwitchWnd)
-        MESSAGE_HANDLER(WM_THEMECHANGED, OnThemeChanged)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
         MESSAGE_HANDLER(WM_SIZE, OnSize)
         MESSAGE_HANDLER(WM_CREATE, OnCreate)

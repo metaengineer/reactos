@@ -400,8 +400,6 @@ public:
 
         SubclassWindow(CToolbar::Create(hWndParent, styles));
 
-        SetWindowTheme(m_hWnd, L"TrayNotify", NULL);
-
         m_ImageList = ImageList_Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 1000);
         SetImageList(m_ImageList);
 
@@ -421,25 +419,13 @@ public:
 
     LRESULT DrawBackground(HDC hdc)
     {
-        RECT rect;
-
-        GetClientRect(&rect);
-        DrawThemeParentBackground(m_hWnd, hdc, &rect);
-
-        return TRUE;
+        return FALSE;
     }
 
     LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        HDC hdc = (HDC) wParam;
-
-        if (!IsAppThemed())
-        {
-            bHandled = FALSE;
-            return 0;
-        }
-
-        return DrawBackground(hdc);
+        bHandled = TRUE;
+        return 0;
     }
 
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -612,8 +598,6 @@ public:
             return NULL;
         }
 
-        SetWindowTheme(m_hWnd, L"TrayNotify", NULL);
-
         return m_hWnd;
     }
 };
@@ -689,49 +673,13 @@ public:
 
     LRESULT OnThemeChanged()
     {
-        LOGFONTW clockFont;
-        HTHEME clockTheme;
-        HFONT hFont;
-
-        clockTheme = OpenThemeData(m_hWnd, L"Clock");
-
-        if (clockTheme)
-        {
-            GetThemeFont(clockTheme,
-                NULL,
-                CLP_TIME,
-                0,
-                TMT_FONT,
-                &clockFont);
-
-            hFont = CreateFontIndirectW(&clockFont);
-
-            GetThemeColor(clockTheme,
-                CLP_TIME,
-                0,
-                TMT_TEXTCOLOR,
-                &textColor);
-
-            if (this->hFont != NULL)
-                DeleteObject(this->hFont);
-
-            SetFont(hFont, FALSE);
-        }
-        else
-        {
-            /* We don't need to set a font here, our parent will use 
-              * WM_SETFONT to set the right one when themes are not enabled. */
-            textColor = RGB(0, 0, 0);
-        }
-
-        CloseThemeData(clockTheme);
-
-        return TRUE;
+        return FALSE;
     }
 
     LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        return OnThemeChanged();
+        bHandled=0;
+        return FALSE;
     }
 
     BOOL MeasureLines()
@@ -1114,25 +1062,13 @@ public:
 
     LRESULT DrawBackground(HDC hdc)
     {
-        RECT rect;
-
-        GetClientRect(&rect);
-        DrawThemeParentBackground(m_hWnd, hdc, &rect);
-
-        return TRUE;
+        return FALSE;
     }
 
     LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        HDC hdc = (HDC) wParam;
-
-        if (!IsAppThemed())
-        {
-            bHandled = FALSE;
-            return 0;
-        }
-
-        return DrawBackground(hdc);
+        bHandled = TRUE;
+        return 0;
     }
 
     LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -1202,7 +1138,6 @@ public:
         MESSAGE_HANDLER(WM_SIZE, OnSize)
         MESSAGE_HANDLER(WM_PAINT, OnPaint)
         MESSAGE_HANDLER(WM_PRINTCLIENT, OnPaint)
-        MESSAGE_HANDLER(WM_THEMECHANGED, OnThemeChanged)
         MESSAGE_HANDLER(WM_TIMER, OnTimer)
         MESSAGE_HANDLER(WM_NCHITTEST, OnNcHitTest)
         MESSAGE_HANDLER(WM_SETFONT, OnSetFont)
@@ -1225,9 +1160,6 @@ public:
 
         Create(hWndParent, 0, NULL, dwStyle);
 
-        if (m_hWnd != NULL)
-            SetWindowTheme(m_hWnd, L"TrayNotify", NULL);
-
         return m_hWnd;
 
     }
@@ -1242,6 +1174,13 @@ static const WCHAR szTrayNotifyWndClass [] = TEXT("TrayNotifyWnd");
 #define TRAY_NOTIFY_WND_SPACING_X   2
 #define TRAY_NOTIFY_WND_SPACING_Y   2
 
+typedef struct _MARGINS {
+          int cxLeftWidth;
+          int cxRightWidth;
+          int cyTopHeight;
+          int cyBottomHeight;
+   } MARGINS, *PMARGINS;
+
 class CTrayNotifyWnd :
     public CComObjectRootEx<CComMultiThreadModelNoCS>,
     public CWindowImpl < CTrayNotifyWnd, CWindow, CControlWinTraits >
@@ -1253,7 +1192,6 @@ class CTrayNotifyWnd :
 
     CComPtr<ITrayWindow> TrayWindow;
 
-    HTHEME TrayTheme;
     SIZE szTrayClockMin;
     SIZE szTrayNotify;
     MARGINS ContentMargin;
@@ -1273,7 +1211,6 @@ public:
         hWndNotify(NULL),
         m_pager(NULL),
         m_clock(NULL),
-        TrayTheme(NULL),
         hFontClock(NULL),
         dwFlags(0)
     {
@@ -1285,36 +1222,13 @@ public:
 
     LRESULT OnThemeChanged()
     {
-        if (TrayTheme)
-            CloseThemeData(TrayTheme);
+        SetWindowExStyle(m_hWnd, WS_EX_STATICEDGE, WS_EX_STATICEDGE);
 
-        if (IsThemeActive())
-            TrayTheme = OpenThemeData(m_hWnd, L"TrayNotify");
-        else
-            TrayTheme = NULL;
-
-        if (TrayTheme)
-        {
-            SetWindowExStyle(m_hWnd, WS_EX_STATICEDGE, 0);
-
-            GetThemeMargins(TrayTheme,
-                NULL,
-                TNP_BACKGROUND,
-                0,
-                TMT_CONTENTMARGINS,
-                NULL,
-                &ContentMargin);
-        }
-        else
-        {
-            SetWindowExStyle(m_hWnd, WS_EX_STATICEDGE, WS_EX_STATICEDGE);
-
-            ContentMargin.cxLeftWidth = 0;
-            ContentMargin.cxRightWidth = 0;
-            ContentMargin.cyTopHeight = 0;
-            ContentMargin.cyBottomHeight = 0;
-        }
-
+        ContentMargin.cxLeftWidth = 0;
+        ContentMargin.cxRightWidth = 0;
+        ContentMargin.cyTopHeight = 0;
+        ContentMargin.cyBottomHeight = 0;
+        
         return TRUE;
     }
 
@@ -1451,35 +1365,13 @@ public:
 
     LRESULT DrawBackground(HDC hdc)
     {
-        HRESULT res;
-        RECT rect;
-
-        GetClientRect(&rect);
-
-        if (TrayTheme)
-        {
-            if (IsThemeBackgroundPartiallyTransparent(TrayTheme, TNP_BACKGROUND, 0))
-            {
-                DrawThemeParentBackground(m_hWnd, hdc, &rect);
-            }
-
-            res = DrawThemeBackground(TrayTheme, hdc, TNP_BACKGROUND, 0, &rect, 0);
-        }
-
-        return res;
+        return FALSE;
     }
 
     LRESULT OnEraseBackground(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        HDC hdc = (HDC) wParam;
-
-        if (!TrayTheme)
-        {
-            bHandled = FALSE;
-            return 0;
-        }
-
-        return DrawBackground(hdc);
+        bHandled=0;
+        return 0;
     }
 
     BOOL NotifyIconCmd(WPARAM wParam, LPARAM lParam)
@@ -1502,17 +1394,6 @@ public:
 
     LRESULT OnGetMinimumSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        BOOL Horizontal = (BOOL) wParam;
-
-        if (Horizontal != IsHorizontal)
-        {
-            IsHorizontal = Horizontal;
-            if (IsHorizontal)
-                SetWindowTheme(m_hWnd, L"TrayNotifyHoriz", NULL);
-            else
-                SetWindowTheme(m_hWnd, L"TrayNotifyVert", NULL);
-        }
-
         return (LRESULT) GetMinimumSize((PSIZE) lParam);
     }
 
@@ -1590,7 +1471,6 @@ public:
 
     BEGIN_MSG_MAP(CTrayNotifyWnd)
         MESSAGE_HANDLER(WM_CREATE, OnCreate)
-        MESSAGE_HANDLER(WM_THEMECHANGED, OnThemeChanged)
         MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
         MESSAGE_HANDLER(WM_SIZE, OnSize)
         MESSAGE_HANDLER(WM_NCHITTEST, OnNcHitTest)

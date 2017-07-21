@@ -25,7 +25,6 @@ target_link_libraries(rshell
 
 add_importlibs(rshell
     browseui
-    uxtheme
     shlwapi
     advapi32
     shell32

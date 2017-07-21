@@ -11,10 +11,9 @@
 #include "desk.h"
 
 #include <shlwapi.h>
-#include <uxtheme.h>
-#include <uxundoc.h>
 #include <vssym32.h>
-
+#include <wine/debug.h>
+WINE_DEFAULT_DEBUG_CHANNEL(shell);
 static const WCHAR g_CPColors[] = L"Control Panel\\Colors";
 static const WCHAR g_CPANewSchemes[] = L"Control Panel\\Appearance\\New Schemes";
 static const WCHAR g_CPMetrics[] = L"Control Panel\\Desktop\\WindowMetrics";
@@ -250,10 +249,10 @@ LoadSchemeFromReg(OUT COLOR_SCHEME *scheme, IN PTHEME_SELECTION pSelectedTheme)
     BOOL Ret = TRUE;
     LONG result;
 
-    wsprintf(strSchemeKey, L"%s\\%s\\Sizes\\%s",
-             g_CPANewSchemes,
-             pSelectedTheme->Color->StyleName,
-             pSelectedTheme->Size->StyleName);
+    //wsprintf(strSchemeKey, L"%s\\%s\\Sizes\\%s",
+    //         g_CPANewSchemes,
+    //         pSelectedTheme->Color->StyleName,
+    //         pSelectedTheme->Size->StyleName);
 
     result = RegOpenKeyW(HKEY_CURRENT_USER, strSchemeKey, &hkScheme);
     if (result != ERROR_SUCCESS) return FALSE;
@@ -440,10 +439,14 @@ ApplyScheme(IN COLOR_SCHEME *scheme, IN PTHEME_SELECTION pSelectedTheme)
     }
 }
 
-static THEME*
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+
+__attribute__((unused)) static THEME*
 CreateTheme(LPCWSTR pszName, LPCWSTR pszDisplayName)
 {
-    PTHEME pTheme;
+          
+    /*PTHEME pTheme;
 
     pTheme = (PTHEME) malloc(sizeof(THEME));
     if (pTheme == NULL) return NULL;
@@ -473,13 +476,15 @@ CreateTheme(LPCWSTR pszName, LPCWSTR pszDisplayName)
         return NULL;
     }
 
-    return pTheme;
+    return pTheme;*/
+    return NULL;
 }
 
-static PTHEME_STYLE
+__attribute__((unused)) static PTHEME_STYLE
 CreateStyle(LPCWSTR pszName, LPCWSTR pszDisplayName)
 {
-    PTHEME_STYLE pStyle;
+          
+    /*PTHEME_STYLE pStyle;
 
     pStyle = (PTHEME_STYLE) malloc(sizeof(THEME_STYLE));
     if (pStyle == NULL) return NULL;
@@ -502,13 +507,15 @@ CreateStyle(LPCWSTR pszName, LPCWSTR pszDisplayName)
     pStyle->ChildStyle = NULL;
     pStyle->NextStyle = NULL;
 
-    return pStyle;
+    return pStyle;*/
+    return NULL;
 }
 
-static void
+__attribute__((unused)) static void
 CleanupStyles(IN PTHEME_STYLE pStylesList)
 {
-    PTHEME_STYLE pStyle, pStyleOld;
+          
+    /*PTHEME_STYLE pStyle, pStyleOld;
 
     pStyle = pStylesList;
     while (pStyle)
@@ -520,13 +527,14 @@ CleanupStyles(IN PTHEME_STYLE pStylesList)
         pStyleOld = pStyle;
         pStyle = pStyle->NextStyle;
         free(pStyleOld);
-    }
+    }*/
 }
 
 void
 CleanupThemes(IN PTHEME pThemeList)
 {
-    PTHEME pTheme, pThemeOld;
+          
+    /*PTHEME pTheme, pThemeOld;
 
     pTheme = pThemeList;
     while (pTheme)
@@ -539,13 +547,14 @@ CleanupThemes(IN PTHEME pThemeList)
         pThemeOld = pTheme;
         pTheme = pTheme->NextTheme;
         free(pThemeOld);
-    }
+    }*/
 }
 
-static PTHEME_STYLE
+__attribute__((unused)) static PTHEME_STYLE
 FindStyle(IN PTHEME_STYLE pStylesList, IN PCWSTR StyleName)
 {
-    PTHEME_STYLE pStyle;
+          
+    /*PTHEME_STYLE pStyle;
 
     for (pStyle = pStylesList; pStyle; pStyle = pStyle->NextStyle)
     {
@@ -555,17 +564,19 @@ FindStyle(IN PTHEME_STYLE pStylesList, IN PCWSTR StyleName)
         }
     }
 
-    /* If we can't find the style requested, return the first one */
-    return pStylesList;
+    // If we can't find the style requested, return the first one */
+    //return pStylesList;
+    return NULL;
 }
 
 /*
  * LoadSchemeSizes: Returns a list of sizes from the registry key of a scheme
  */
-static PTHEME_STYLE
+__attribute__((unused)) static PTHEME_STYLE
 LoadSchemeSizes(IN HKEY hkScheme)
 {
-    HKEY hkSizes, hkSize;
+          
+    /*HKEY hkSizes, hkSize;
     INT Result;
     INT iStyle;
     WCHAR wstrSizeName[5], wstrDisplayName[50];
@@ -615,16 +626,18 @@ LoadSchemeSizes(IN HKEY hkScheme)
     }
 
     RegCloseKey(hkSizes);
-    return List;
+    return List;*/
+    return NULL;
 }
 
 /*
  * LoadClassicColorSchemes: Returns a list of classic theme colours from the registry key of a scheme
  */
-static THEME_STYLE*
+__attribute__((unused)) static PTHEME_STYLE
 LoadClassicColorSchemes(VOID)
 {
-    INT Result;
+          
+    /*INT Result;
     HKEY hkNewSchemes, hkScheme;
     INT iStyle;
     WCHAR wstrStyleName[5], wstrDisplayName[50];
@@ -678,15 +691,18 @@ LoadClassicColorSchemes(VOID)
     }
 
     RegCloseKey(hkNewSchemes);
-    return List;
+    return List;*/
+    return NULL;
 }
 
+typedef PVOID PTHEMENAMES;
 typedef HRESULT (WINAPI *ENUMTHEMESTYLE) (LPCWSTR, LPWSTR, DWORD, PTHEMENAMES);
 
-static THEME_STYLE*
+__attribute__((unused)) static PTHEME_STYLE
 EnumThemeStyles(IN LPCWSTR pszThemeFileName, IN ENUMTHEMESTYLE pfnEnumTheme)
 {
-    DWORD index = 0;
+          
+    /*DWORD index = 0;
     THEMENAMES names;
     THEME_STYLE *List = NULL, **ppPrevStyle, *pCurrentStyle;
 
@@ -701,12 +717,14 @@ EnumThemeStyles(IN LPCWSTR pszThemeFileName, IN ENUMTHEMESTYLE pfnEnumTheme)
         ppPrevStyle = &pCurrentStyle->NextStyle;
     }
 
-    return List;
+    return List;*/
+    return NULL;
 }
 
 PTHEME LoadTheme(IN LPCWSTR pszThemeFileName,IN LPCWSTR pszThemeName)
 {
-    PTHEME pTheme = CreateTheme(pszThemeFileName, pszThemeName);
+          
+    /*PTHEME pTheme = CreateTheme(pszThemeFileName, pszThemeName);
     if (pTheme == NULL) 
         return NULL;
 
@@ -718,7 +736,8 @@ PTHEME LoadTheme(IN LPCWSTR pszThemeFileName,IN LPCWSTR pszThemeName)
         return NULL;
     }
 
-    return pTheme;
+    return pTheme;*/
+    return NULL;
 }
 
 BOOL CALLBACK
@@ -729,7 +748,8 @@ EnumThemeProc(IN LPVOID lpReserved,
               IN LPVOID lpReserved2,
               IN OUT LPVOID lpData)
 {
-    PTHEME *List, pTheme;
+          
+    /*PTHEME *List, pTheme;
 
     List = (PTHEME*)lpData;
     pTheme = LoadTheme(pszThemeFileName, pszThemeName);
@@ -738,7 +758,8 @@ EnumThemeProc(IN LPVOID lpReserved,
     pTheme->NextTheme = *List;
     *List = pTheme;
 
-    return TRUE;
+    return TRUE;*/
+    return FALSE;
 }
 
 /*
@@ -748,26 +769,27 @@ EnumThemeProc(IN LPVOID lpReserved,
 PTHEME
 LoadThemes(VOID)
 {
-    HRESULT hret;
+          
+    /*HRESULT hret;
     PTHEME pClassicTheme;
     WCHAR strClassicTheme[40];
     WCHAR szThemesPath[MAX_PATH], *pszClassicTheme;
     int res;
 
-    /* Insert the classic theme */
+    // Insert the classic theme
     res = LoadString(hApplet, IDS_CLASSIC_THEME, strClassicTheme, 40);
     pszClassicTheme = (res > 0 ? strClassicTheme : L"Classic Theme");
     pClassicTheme = CreateTheme(NULL, pszClassicTheme);
     if (pClassicTheme == NULL) return NULL;
     pClassicTheme->ColoursList = LoadClassicColorSchemes();
 
-    /* Get path to themes folder */
+    // Get path to themes folder
     ZeroMemory(szThemesPath, sizeof(szThemesPath));
     hret = SHGetFolderPathW (NULL, CSIDL_RESOURCES, NULL, SHGFP_TYPE_DEFAULT, szThemesPath);
     if (FAILED(hret)) return pClassicTheme;
     lstrcatW (szThemesPath, L"\\Themes");
 
-    /* Enumerate themes */
+    // Enumerate themes
     hret = EnumThemes( szThemesPath, EnumThemeProc, &pClassicTheme->NextTheme);
     if (FAILED(hret))
     {
@@ -780,7 +802,8 @@ LoadThemes(VOID)
         }
     }
 
-    return pClassicTheme;
+    return pClassicTheme;*/
+    return NULL;
 }
 
 /*
@@ -794,7 +817,8 @@ FindOrAppendTheme(IN PTHEME pThemeList,
                   IN LPCWSTR pwszSizeBuff,
                   OUT PTHEME_SELECTION pSelectedTheme)
 {
-    PTHEME pTheme;
+          
+    /*PTHEME pTheme;
     PTHEME pFoundTheme = NULL;
 
     ZeroMemory(pSelectedTheme, sizeof(THEME_SELECTION));
@@ -833,7 +857,8 @@ FindOrAppendTheme(IN PTHEME pThemeList,
     else
         pSelectedTheme->Size = pFoundTheme->SizesList;
 
-    return TRUE;
+    return TRUE;*/
+    return FALSE;
 }
 
 /*
@@ -843,12 +868,13 @@ FindOrAppendTheme(IN PTHEME pThemeList,
 BOOL
 GetActiveTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
 {
-    WCHAR szThemeFileName[MAX_PATH];
+          
+    /*WCHAR szThemeFileName[MAX_PATH];
     WCHAR szColorBuff[MAX_PATH];
     WCHAR szSizeBuff[MAX_PATH];
     HRESULT hret;
 
-    /* Retrieve the name of the current theme */
+    // Retrieve the name of the current theme
     hret = GetCurrentThemeName(szThemeFileName,
                                MAX_PATH,
                                szColorBuff,
@@ -858,7 +884,8 @@ GetActiveTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
     if (FAILED(hret))  
         return FALSE;
 
-    return FindOrAppendTheme(pThemeList, szThemeFileName, szColorBuff, szSizeBuff, pSelectedTheme);
+    return FindOrAppendTheme(pThemeList, szThemeFileName, szColorBuff, szSizeBuff, pSelectedTheme);*/
+    return FALSE;
 }
 
 /*
@@ -868,7 +895,8 @@ GetActiveTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
 BOOL
 GetActiveClassicTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
 {
-    INT Result;
+          
+    /*INT Result;
     WCHAR szSelectedClassicScheme[5], szSelectedClassicSize[5];
     HKEY hkNewSchemes;
     DWORD dwType, dwDisplayNameLength;
@@ -876,7 +904,7 @@ GetActiveClassicTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
 
     ZeroMemory(pSelectedTheme, sizeof(THEME_SELECTION));
 
-    /* Assume failure */
+    // Assume failure
     szSelectedClassicScheme[0] = 0;
     szSelectedClassicSize[0] = 0;
 
@@ -904,13 +932,15 @@ GetActiveClassicTheme(IN PTHEME pThemeList, OUT PTHEME_SELECTION pSelectedTheme)
     pSelectedTheme->Color = pCurrentStyle;
     pSelectedTheme->Size = pCurrentSize;
 
-    return TRUE;
+    return TRUE;*/
+    return FALSE;
 }
 
 BOOL
 ActivateTheme(IN PTHEME_SELECTION pSelectedTheme)
 {
-    HTHEMEFILE hThemeFile = 0;
+          
+    /*HTHEMEFILE hThemeFile = 0;
     HRESULT hret;
 
     if (pSelectedTheme->ThemeActive)
@@ -931,13 +961,15 @@ ActivateTheme(IN PTHEME_SELECTION pSelectedTheme)
        CloseThemeFile(hThemeFile);
     }
 
-    return SUCCEEDED(hret);
+    return SUCCEEDED(hret);*/
+    return FALSE;
 }
 
 BOOL
 LoadSchemeFromTheme(OUT PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSelectedTheme)
 {
-    HTHEMEFILE hThemeFile = 0;
+          
+    /*HTHEMEFILE hThemeFile = 0;
     HRESULT hret;
     HTHEME hTheme;
     int i;
@@ -953,14 +985,14 @@ LoadSchemeFromTheme(OUT PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSelectedTheme
     hTheme = OpenThemeDataFromFile(hThemeFile, hCPLWindow, L"WINDOW", 0);
     if (hTheme == NULL) return FALSE;
 
-    /* Load colors */
+    // Load colors
     for (i = 0; i < NUM_COLORS; i++)
     {
         scheme->crColor[i] = GetThemeSysColor(hTheme,i);
     }
 
-    /* Load sizes */
-    /* I wonder why GetThemeSysInt doesn't work here */
+    // Load sizes
+    // I wonder why GetThemeSysInt doesn't work here 
     scheme->ncMetrics.iBorderWidth = GetThemeSysSize(hTheme, SM_CXFRAME);
     scheme->ncMetrics.iScrollWidth = GetThemeSysSize(hTheme, SM_CXVSCROLL);
     scheme->ncMetrics.iScrollHeight = GetThemeSysSize(hTheme, SM_CYHSCROLL);
@@ -971,7 +1003,7 @@ LoadSchemeFromTheme(OUT PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSelectedTheme
     scheme->ncMetrics.iMenuWidth = GetThemeSysSize(hTheme, SM_CXMENUSIZE);
     scheme->ncMetrics.iMenuHeight = GetThemeSysSize(hTheme, SM_CYMENUSIZE);
 
-    /* Load fonts */
+    // Load fonts
     GetThemeSysFont(hTheme, TMT_CAPTIONFONT, &scheme->ncMetrics.lfCaptionFont);
     GetThemeSysFont(hTheme, TMT_SMALLCAPTIONFONT, &scheme->ncMetrics.lfSmCaptionFont);
     GetThemeSysFont(hTheme, TMT_MENUFONT, &scheme->ncMetrics.lfMenuFont );
@@ -983,13 +1015,15 @@ LoadSchemeFromTheme(OUT PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSelectedTheme
 
     CloseThemeData(hTheme);
 
-    return TRUE;
+    return TRUE;*/
+    return FALSE;
 }
 
 BOOL
 DrawThemePreview(IN HDC hdcMem, IN PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSelectedTheme, IN PRECT prcWindow)
 {
-    HBRUSH hbrBack;
+          
+    /*HBRUSH hbrBack;
     HRESULT hres;
 
     hbrBack = CreateSolidBrush(scheme->crColor[COLOR_DESKTOP]);
@@ -1008,5 +1042,7 @@ DrawThemePreview(IN HDC hdcMem, IN PCOLOR_SCHEME scheme, IN PTHEME_SELECTION pSe
                          &scheme->ncMetrics,
                          scheme->crColor);
 
-    return SUCCEEDED(hres);
+    return SUCCEEDED(hres);*/
+    return FALSE;
 }
+#pragma GCC diagnostic pop

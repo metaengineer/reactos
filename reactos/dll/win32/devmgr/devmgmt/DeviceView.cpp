@@ -78,7 +78,7 @@ CDeviceView::Initialize()
                                     TVSIL_NORMAL);
 
         // Give the treeview arrows instead of +/- boxes (on Win7)
-        SetWindowTheme(m_hTreeView, L"explorer", NULL);
+        //SetWindowTheme(m_hTreeView, L"explorer", NULL);
 
         // Create the root node
         m_RootNode = new CRootNode(&m_ImageListData);

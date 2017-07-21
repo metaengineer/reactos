@@ -20,7 +20,6 @@
 #include "shellmenu.h"
 #include <commoncontrols.h>
 #include <shlwapi_undoc.h>
-#include <uxtheme.h>
 #include <vssym32.h>
 
 #include "CMenuBand.h"
@@ -390,8 +389,6 @@ HRESULT CMenuToolbarBase::CreateToolbar(HWND hwndParent, DWORD dwFlags)
 
     SubclassWindow(CToolbar::Create(hwndParent, tbStyles, tbExStyles));
 
-    SetWindowTheme(m_hWnd, L"", L"");
-
     SystemParametersInfo(SPI_GETFLATMENU, 0, &m_useFlatMenus, 0);
 
     m_menuBand->AdjustForTheme(m_useFlatMenus);
@@ -710,17 +707,9 @@ HRESULT CMenuToolbarBase::PopupSubMenu(UINT iItem, UINT index, IShellMenu* child
 
     if (m_initFlags & SMINIT_VERTICAL)
     {
-        // FIXME: Hardcoding this here feels hacky.
-        if (IsAppThemed())
-        {
-            pt.x = b.x - 1;
-            pt.y = a.y - 1;
-        }
-        else
-        {
-            pt.x = b.x - 3;
-            pt.y = a.y - 3;
-        }
+        // no theming.
+        pt.x = b.x - 3;
+        pt.y = a.y - 3;
     }
 
     // Display the submenu

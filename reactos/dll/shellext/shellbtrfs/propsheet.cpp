@@ -32,7 +32,6 @@
 
 #define NO_SHLWAPI_STRFCNS
 #include <shlwapi.h>
-#include <uxtheme.h>
 
 #include "propsheet.h"
 #include "resource.h"
@@ -627,7 +626,7 @@ static INT_PTR CALLBACK PropSheetDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             static ULONG perm_controls[] = { IDC_USERR, IDC_USERW, IDC_USERX, IDC_GROUPR, IDC_GROUPW, IDC_GROUPX, IDC_OTHERR, IDC_OTHERW, IDC_OTHERX, 0 };
             static ULONG perms[] = { S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH, 0 };
             
-            EnableThemeDialogTexture(hwndDlg, ETDT_ENABLETAB);
+            //EnableThemeDialogTexture(hwndDlg, ETDT_ENABLETAB);
             
             SetWindowLongPtr(hwndDlg, GWLP_USERDATA, (LONG_PTR)bps);
             

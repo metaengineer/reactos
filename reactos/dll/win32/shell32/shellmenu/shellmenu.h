@@ -42,7 +42,6 @@
 #include <shlobj_undoc.h>
 #include <shlwapi.h>
 #include <shlguid_undoc.h>
-#include <uxtheme.h>
 #include <strsafe.h>
 
 #include <atlbase.h>
