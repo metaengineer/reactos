@@ -658,29 +658,28 @@ NtGdiResizePalette(
     UINT cEntries)
 {
   /*PPALETTE palPtr = PALETTE_ShareLockPalette(hpal);
-  UINT cPrevEnt, prevVer;
+  UINT cPrevEnt;
   INT prevsize = 3*sizeof(int*) + 8*sizeof(ULONG) + sizeof(HANDLE) + sizeof(BASEOBJECT);
   INT size = prevsize;
-  prevsize += (cPrevEnt - 1) * sizeof(PALETTEENTRY);
-  INT size +=(cEntries - 1) * sizeof(PALETTEENTRY);
   XLATEOBJ *XlateObj = NULL;
   XLATEOBJ *NewXlateObj;
+  prevsize += (cPrevEnt - 1) * sizeof(PALETTEENTRY);
+  size +=(cEntries - 1) * sizeof(PALETTEENTRY);
   if(!palPtr) return FALSE;
-  cPrevEnt = palPtr->logpalette->palNumEntries;
-  prevVer = palPtr->logpalette->palVersion;
+  cPrevEnt = palPtr->NumColors;
   XlateObj = palPtr->logicalToSystem;
 
-  if (!(palPtr = GDI_ReallocObject(size, hPal, palPtr))) return FALSE;
+  if (!(palPtr = GDI_ReallocObject(size, hpal, palPtr))) return FALSE;
 
   if(!XlateObj)
-    NewXlateObj = (int*)HeapAlloc(GetProcessHeap(), 0, cEntries * sizeof(int));
+    NewXlateObj = (int*)RtlAllocateHeap(GetProcessHeap(), 0, cEntries * sizeof(int));
   else
-    NewXlateObj = (int*)HeapReAlloc(GetProcessHeap(), 0, XlateObj, cEntries * sizeof(int));
+    NewXlateObj = (int*)RtlReallocateHeap(GetProcessHeap(), 0, XlateObj, cEntries * sizeof(int));
   if(NewXlateObj == NULL)
   {
     ERR("Cannot make XlateObj -- out of memory!");
     //GDI_ReleaseObj( hPal );
-    PALETTE_ShareUnlockPalette(hpal);
+    PALETTE_ShareUnlockPalette(palPtr);
     return FALSE;
   }
   palPtr->logicalToSystem = NewXlateObj;
@@ -691,10 +690,9 @@ NtGdiResizePalette(
     memset( (BYTE*)palPtr + prevsize, 0, size - prevsize );
     PALETTE_ValidateFlags((PALETTEENTRY*)((BYTE*)palPtr + prevsize), cEntries - cPrevEnt );
   }
-  palPtr->logpalette->palNumEntries = cEntries;
-  palPtr->logpalette->palVersion = prevVer;
+  palPtr->NumColors = cEntries;
 //    GDI_ReleaseObj( hPal );
-  PALETTE_ShareUnlockPalette(hPal);*/
+  PALETTE_ShareUnlockPalette(palPtr);*/
   return TRUE;
 }
 
