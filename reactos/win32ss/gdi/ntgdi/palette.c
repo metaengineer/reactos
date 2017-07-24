@@ -515,10 +515,13 @@ APIENTRY
 NtGdiCreateHalftonePalette(HDC  hDC)
 {
     int i, r, g, b;
-    PALETTEENTRY PalEntries[256];
-    PPALETTE ppal;
+    BYTE *x, *y;
+    int c1, c2;
+    PALETTEENTRY clr;
+    PPALETTE ppal, xpal;
     PDC pdc;
     HPALETTE hpal = NULL;
+    c2=0;
 
     pdc = DC_LockDc(hDC);
     if (!pdc)
@@ -527,28 +530,88 @@ NtGdiCreateHalftonePalette(HDC  hDC)
         return NULL;
     }
 
-    RtlZeroMemory(PalEntries, sizeof(PalEntries));
-
-    /* First and last ten entries are default ones */
-    for (i = 0; i < 10; i++)
-    {
-        PalEntries[i].peRed = g_sysPalTemplate[i].peRed;
-        PalEntries[i].peGreen = g_sysPalTemplate[i].peGreen;
-        PalEntries[i].peBlue = g_sysPalTemplate[i].peBlue;
-
-        PalEntries[246 + i].peRed = g_sysPalTemplate[10 + i].peRed;
-        PalEntries[246 + i].peGreen = g_sysPalTemplate[10 + i].peGreen;
-        PalEntries[246 + i].peBlue = g_sysPalTemplate[10 + i].peBlue;
-    }
-
     ppal = PALETTE_ShareLockPalette(pdc->dclevel.hpal);
-    if (ppal && (ppal->flFlags & PAL_INDEXED))
+    xpal = PALETTE_AllocPalWithHandle(PAL_INDEXED, 256, ppal->IndexedColors, 0, 0, 0);
+    if (xpal)
     {
-        /* FIXME: optimize the palette for the current palette */
-        UNIMPLEMENTED;
+        hpal = xpal->BaseObject.hHmgr;
+        PALETTE_UnlockPalette(xpal);
+    }
+    PALETTE_ShareUnlockPalette(ppal);
+    DC_UnlockDc(pdc);
+    xpal=PALETTE_ShareLockPalette(hpal);
+    if (xpal && (xpal->flFlags & PAL_INDEXED))
+    {
+        x=(BYTE *)ExAllocatePoolWithTag(PagedPool,256*sizeof(USHORT),TAG_PALETTE); // value
+        if(!x)
+        {
+           PALETTE_ShareUnlockPalette(xpal);
+           return INVALID_HANDLE_VALUE;
+        }
+        y=(BYTE *)ExAllocatePoolWithTag(PagedPool,256*sizeof(USHORT),TAG_PALETTE); // index
+        if(!y)
+        {
+           ExFreePoolWithTag(x,TAG_PALETTE);
+           PALETTE_ShareUnlockPalette(xpal);
+           return INVALID_HANDLE_VALUE;
+        }
+        // not using system colors here. As long as black and white are present, palette is valid for dither
+        // adjust the colors so their components can divide by 4, so dithering doesn't cause fractions
+        // while at it, sort the palette, while dithering it's easier to pick adjacent colors
+        // length is still O(n*n), huge. No way around that 
+        DPRINT1("NtGdiCreateHalftonePalette, indexed case. Beginning...\n");
+        for(i=0; i<(xpal->NumColors-1); i++)
+        {
+           x[i]=0;
+           for(c1=i; c1<xpal->NumColors; c1++)
+           {
+              c2=clr.peRed+clr.peGreen+clr.peBlue;
+              if(c2<x[i])
+              {
+                 x[i]=c2;
+                 y[i]=c1;
+              }
+           }
+           clr.peRed=xpal->IndexedColors[c1].peRed+1;
+           clr.peRed=clr.peRed-clr.peRed%4;
+           clr.peGreen=xpal->IndexedColors[c1].peGreen+1;
+           clr.peGreen=clr.peGreen-clr.peGreen%4;
+           clr.peBlue=xpal->IndexedColors[c1].peBlue+1;
+           clr.peBlue=clr.peBlue-clr.peBlue%4;
+           xpal->IndexedColors[i].peRed=clr.peRed;
+           xpal->IndexedColors[i].peGreen=clr.peGreen;
+           xpal->IndexedColors[i].peBlue=clr.peBlue;
+        }
+        ExFreePoolWithTag(x,TAG_PALETTE);
+        ExFreePoolWithTag(y,TAG_PALETTE);
+        c2=0;
+        for(c1=1; c1<xpal->NumColors; c1++)
+        {
+           if((xpal->IndexedColors[c1].peRed==xpal->IndexedColors[c1-1].peRed)&&
+              (xpal->IndexedColors[c1].peGreen==xpal->IndexedColors[c1-1].peGreen)&&
+              (xpal->IndexedColors[c1].peBlue==xpal->IndexedColors[c1-1].peBlue))
+              c2++;
+           if((c1+c2)<xpal->NumColors)
+           {
+              xpal->IndexedColors[c1].peRed=xpal->IndexedColors[c1+c2].peRed;
+              xpal->IndexedColors[c1].peGreen=xpal->IndexedColors[c1+c2].peGreen;
+              xpal->IndexedColors[c1].peBlue=xpal->IndexedColors[c1+c2].peBlue;
+           }
+        }
+        DPRINT1("-Complete.\n");
     }
     else
     {
+         /* First and last ten entries are default ones */
+         for (i = 1; i < 10; i++)
+         {
+            xpal->IndexedColors[i].peRed = g_sysPalTemplate[i].peRed;
+            xpal->IndexedColors[i].peGreen = g_sysPalTemplate[i].peGreen;
+            xpal->IndexedColors[i].peBlue = g_sysPalTemplate[i].peBlue;
+            xpal->IndexedColors[246 + i].peRed = g_sysPalTemplate[10 + i].peRed;
+            xpal->IndexedColors[246 + i].peGreen = g_sysPalTemplate[10 + i].peGreen;
+            xpal->IndexedColors[246 + i].peBlue = g_sysPalTemplate[10 + i].peBlue;
+        }
         for (r = 0; r < 6; r++)
         {
             for (g = 0; g < 6; g++)
@@ -556,34 +619,35 @@ NtGdiCreateHalftonePalette(HDC  hDC)
                 for (b = 0; b < 6; b++)
                 {
                     i = r + g*6 + b*36 + 10;
-                    PalEntries[i].peRed = r * 51;
-                    PalEntries[i].peGreen = g * 51;
-                    PalEntries[i].peBlue = b * 51;
+                    xpal->IndexedColors[i].peRed = r * 44;
+                    xpal->IndexedColors[i].peGreen = g * 44;
+                    xpal->IndexedColors[i].peBlue = b * 44;
                 }
             }
         }
-
         for (i = 216; i < 246; i++)
         {
-            int v = (i - 216) << 3;
-            PalEntries[i].peRed = v;
-            PalEntries[i].peGreen = v;
-            PalEntries[i].peBlue = v;
+            clr.peRed=i+4;
+            clr.peGreen=i+4;
+            clr.peBlue=i+4;
+            xpal->IndexedColors[i].peRed = clr.peRed+4;
+            xpal->IndexedColors[i].peGreen = clr.peGreen;
+            xpal->IndexedColors[i].peBlue = clr.peBlue;
+            i++;
+            xpal->IndexedColors[i].peRed = clr.peRed;
+            xpal->IndexedColors[i].peGreen = clr.peGreen+4;
+            xpal->IndexedColors[i].peBlue = clr.peBlue;
+            i++;
+            xpal->IndexedColors[i].peRed = clr.peRed;
+            xpal->IndexedColors[i].peGreen = clr.peGreen;
+            xpal->IndexedColors[i].peBlue = clr.peBlue+4;
         }
     }
-
-    if (ppal)
-        PALETTE_ShareUnlockPalette(ppal);
-
-    DC_UnlockDc(pdc);
-
-    ppal = PALETTE_AllocPalWithHandle(PAL_INDEXED, 256, PalEntries, 0, 0, 0);
-    if (ppal)
+    if(xpal)
     {
-        hpal = ppal->BaseObject.hHmgr;
-        PALETTE_UnlockPalette(ppal);
+        PALETTE_ShareUnlockPalette(xpal);
+        NtGdiResizePalette(hpal, 256-c2);
     }
-
     return hpal;
 }
 
@@ -591,33 +655,35 @@ BOOL
 APIENTRY
 NtGdiResizePalette(
     HPALETTE hpal,
-    UINT Entries)
+    UINT cEntries)
 {
-/*  PALOBJ *palPtr = (PALOBJ*)AccessUserObject(hPal);
+  /*PPALETTE palPtr = PALETTE_ShareLockPalette(hpal);
   UINT cPrevEnt, prevVer;
-  INT prevsize, size = sizeof(LOGPALETTE) + (cEntries - 1) * sizeof(PALETTEENTRY);
+  INT prevsize = 3*sizeof(int*) + 8*sizeof(ULONG) + sizeof(HANDLE) + sizeof(BASEOBJECT);
+  INT size = prevsize;
+  prevsize += (cPrevEnt - 1) * sizeof(PALETTEENTRY);
+  INT size +=(cEntries - 1) * sizeof(PALETTEENTRY);
   XLATEOBJ *XlateObj = NULL;
-
+  XLATEOBJ *NewXlateObj;
   if(!palPtr) return FALSE;
   cPrevEnt = palPtr->logpalette->palNumEntries;
   prevVer = palPtr->logpalette->palVersion;
-  prevsize = sizeof(LOGPALETTE) + (cPrevEnt - 1) * sizeof(PALETTEENTRY) + sizeof(int*) + sizeof(GDIOBJHDR);
-  size += sizeof(int*) + sizeof(GDIOBJHDR);
   XlateObj = palPtr->logicalToSystem;
 
   if (!(palPtr = GDI_ReallocObject(size, hPal, palPtr))) return FALSE;
 
-  if(XlateObj)
+  if(!XlateObj)
+    NewXlateObj = (int*)HeapAlloc(GetProcessHeap(), 0, cEntries * sizeof(int));
+  else
+    NewXlateObj = (int*)HeapReAlloc(GetProcessHeap(), 0, XlateObj, cEntries * sizeof(int));
+  if(NewXlateObj == NULL)
   {
-    XLATEOBJ *NewXlateObj = (int*) HeapReAlloc(GetProcessHeap(), 0, XlateObj, cEntries * sizeof(int));
-    if(NewXlateObj == NULL)
-    {
-      ERR("Can not resize logicalToSystem -- out of memory!");
-      GDI_ReleaseObj( hPal );
-      return FALSE;
-    }
-    palPtr->logicalToSystem = NewXlateObj;
+    ERR("Cannot make XlateObj -- out of memory!");
+    //GDI_ReleaseObj( hPal );
+    PALETTE_ShareUnlockPalette(hpal);
+    return FALSE;
   }
+  palPtr->logicalToSystem = NewXlateObj;
 
   if(cEntries > cPrevEnt)
   {
@@ -628,10 +694,8 @@ NtGdiResizePalette(
   palPtr->logpalette->palNumEntries = cEntries;
   palPtr->logpalette->palVersion = prevVer;
 //    GDI_ReleaseObj( hPal );
-  return TRUE; */
-
-  UNIMPLEMENTED;
-  return FALSE;
+  PALETTE_ShareUnlockPalette(hPal);*/
+  return TRUE;
 }
 
 BOOL
