@@ -515,7 +515,7 @@ APIENTRY
 NtGdiCreateHalftonePalette(HDC  hDC)
 {
     int i, r, g, b;
-    BYTE *x, *y;
+    USHORT *x, *y;
     int c1, c2;
     PALETTEENTRY clr;
     PPALETTE ppal, xpal;
@@ -542,13 +542,13 @@ NtGdiCreateHalftonePalette(HDC  hDC)
     xpal=PALETTE_ShareLockPalette(hpal);
     if (xpal && (xpal->flFlags & PAL_INDEXED))
     {
-        x=(BYTE *)ExAllocatePoolWithTag(PagedPool,256*sizeof(USHORT),TAG_PALETTE); // value
+        x=(USHORT *)ExAllocatePoolWithTag(PagedPool,xpal->NumColors*sizeof(USHORT),TAG_PALETTE); // value
         if(!x)
         {
            PALETTE_ShareUnlockPalette(xpal);
            return INVALID_HANDLE_VALUE;
         }
-        y=(BYTE *)ExAllocatePoolWithTag(PagedPool,256*sizeof(USHORT),TAG_PALETTE); // index
+        y=(USHORT *)ExAllocatePoolWithTag(PagedPool,xpal->NumColors*sizeof(USHORT),TAG_PALETTE); // index
         if(!y)
         {
            ExFreePoolWithTag(x,TAG_PALETTE);
@@ -562,8 +562,8 @@ NtGdiCreateHalftonePalette(HDC  hDC)
         DPRINT1("NtGdiCreateHalftonePalette, indexed case. Beginning...\n");
         for(i=0; i<(xpal->NumColors-1); i++)
         {
-           x[i]=0;
-           for(c1=i; c1<xpal->NumColors; c1++)
+           x[i]=MAXUSHORT;
+           for(c1=i+1; c1<xpal->NumColors; c1++)
            {
               c2=clr.peRed+clr.peGreen+clr.peBlue;
               if(c2<x[i])
@@ -572,12 +572,16 @@ NtGdiCreateHalftonePalette(HDC  hDC)
                  y[i]=c1;
               }
            }
+           c1=y[i];
            clr.peRed=xpal->IndexedColors[c1].peRed+1;
            clr.peRed=clr.peRed-clr.peRed%4;
            clr.peGreen=xpal->IndexedColors[c1].peGreen+1;
            clr.peGreen=clr.peGreen-clr.peGreen%4;
            clr.peBlue=xpal->IndexedColors[c1].peBlue+1;
            clr.peBlue=clr.peBlue-clr.peBlue%4;
+           xpal->IndexedColors[c1].peRed=xpal->IndexedColors[i].peRed;
+           xpal->IndexedColors[c1].peGreen=xpal->IndexedColors[i].peGreen;
+           xpal->IndexedColors[c1].peBlue=xpal->IndexedColors[i].peBlue;
            xpal->IndexedColors[i].peRed=clr.peRed;
            xpal->IndexedColors[i].peGreen=clr.peGreen;
            xpal->IndexedColors[i].peBlue=clr.peBlue;
@@ -646,7 +650,7 @@ NtGdiCreateHalftonePalette(HDC  hDC)
     if(xpal)
     {
         PALETTE_ShareUnlockPalette(xpal);
-        NtGdiResizePalette(hpal, 256-c2);
+        NtGdiResizePalette(hpal, xpal->NumColors-c2);
     }
     return hpal;
 }
