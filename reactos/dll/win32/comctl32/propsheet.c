@@ -1459,8 +1459,6 @@ static BOOL PROPSHEET_CreatePage(HWND hwndParent,
       SetWindowSubclass(hwndPage, PROPSHEET_WizardSubclassProc, 1,
                         (DWORD_PTR)ppshpage);
   }
-  if (!(psInfo->ppshheader.dwFlags & INTRNL_ANY_WIZARD))
-      EnableThemeDialogTexture (hwndPage, ETDT_ENABLETAB);
 
   return TRUE;
 }

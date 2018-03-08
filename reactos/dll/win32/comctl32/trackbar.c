@@ -90,8 +90,6 @@ typedef struct
 #define TIC_SELECTIONMARKMIN    0x100
 #define TIC_SELECTIONMARK       (TIC_SELECTIONMARKMAX | TIC_SELECTIONMARKMIN)
 
-static const WCHAR themeClass[] = { 'T','r','a','c','k','b','a','r',0 };
-
 static inline int 
 notify_customdraw (const TRACKBAR_INFO *infoPtr, NMCUSTOMDRAW *pnmcd, int stage)
 {
@@ -456,22 +454,12 @@ static void
 TRACKBAR_DrawChannel (const TRACKBAR_INFO *infoPtr, HDC hdc)
 {
     RECT rcChannel = infoPtr->rcChannel;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-
-    if (theme)
-    {
-        DrawThemeBackground (theme, hdc, 
-            (infoPtr->dwStyle & TBS_VERT) ?
-                TKP_TRACKVERT : TKP_TRACK, TKS_NORMAL, &rcChannel, 0);
-    }
-    else
-    {
-        DrawEdge (hdc, &rcChannel, EDGE_SUNKEN, BF_RECT | BF_ADJUST);
-        if (infoPtr->dwStyle & TBS_ENABLESELRANGE) {		 /* fill the channel */
-            FillRect (hdc, &rcChannel, GetStockObject(WHITE_BRUSH));
-            if (TRACKBAR_HasSelection(infoPtr))
-                FillRect (hdc, &infoPtr->rcSelection, GetSysColorBrush(COLOR_HIGHLIGHT));
-        }
+    
+    DrawEdge (hdc, &rcChannel, EDGE_SUNKEN, BF_RECT | BF_ADJUST);
+    if (infoPtr->dwStyle & TBS_ENABLESELRANGE) {		 /* fill the channel */
+        FillRect (hdc, &rcChannel, GetStockObject(WHITE_BRUSH));
+        if (TRACKBAR_HasSelection(infoPtr))
+            FillRect (hdc, &infoPtr->rcSelection, GetSysColorBrush(COLOR_HIGHLIGHT));
     }
 }
 
@@ -563,13 +551,7 @@ TRACKBAR_DrawTics (const TRACKBAR_INFO *infoPtr, HDC hdc)
     int ticFlags = infoPtr->dwStyle & 0x0f;
     LOGPEN ticPen = { PS_SOLID, {1, 0}, GetSysColor (COLOR_3DDKSHADOW) };
     HPEN hOldPen, hTicPen;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     
-    if (theme)
-    {
-        int part = (infoPtr->dwStyle & TBS_VERT) ? TKP_TICSVERT : TKP_TICS;
-        GetThemeColor (theme, part, TSS_NORMAL, TMT_COLOR, &ticPen.lopnColor);
-    }
     /* create the pen to draw the tics with */
     hTicPen = CreatePenIndirect(&ticPen);
     hOldPen = hTicPen ? SelectObject(hdc, hTicPen) : 0;
@@ -689,34 +671,8 @@ TRACKBAR_FillThumb (const TRACKBAR_INFO *infoPtr, HDC hdc, HBRUSH hbrush)
 static void
 TRACKBAR_DrawThumb (TRACKBAR_INFO *infoPtr, HDC hdc)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     int PointDepth;
     HBRUSH brush;
-
-    if (theme)
-    {
-        int partId;
-        int stateId;
-        if (infoPtr->dwStyle & TBS_BOTH)
-            partId = (infoPtr->dwStyle & TBS_VERT) ? TKP_THUMBVERT : TKP_THUMB;
-        else if (infoPtr->dwStyle & TBS_LEFT)
-            partId = (infoPtr->dwStyle & TBS_VERT) ? TKP_THUMBLEFT : TKP_THUMBTOP;
-        else
-            partId = (infoPtr->dwStyle & TBS_VERT) ? TKP_THUMBRIGHT : TKP_THUMBBOTTOM;
-            
-        if (infoPtr->dwStyle & WS_DISABLED)
-            stateId = TUS_DISABLED;
-        else if (infoPtr->flags & TB_DRAG_MODE)
-            stateId = TUS_PRESSED;
-        else if (infoPtr->flags & TB_THUMB_HOT)
-            stateId = TUS_HOT;
-        else
-            stateId = TUS_NORMAL;
-        
-        DrawThemeBackground (theme, hdc, partId, stateId, &infoPtr->rcThumb, NULL);
-        
-        return;
-    }
 
     if (infoPtr->dwStyle & WS_DISABLED || infoPtr->flags & TB_DRAG_MODE)
     {
@@ -934,19 +890,11 @@ TRACKBAR_Refresh (TRACKBAR_INFO *infoPtr, HDC hdcDst)
     
     /* Erase background */
     if (gcdrf == CDRF_DODEFAULT ||
-        notify_customdraw(infoPtr, &nmcd, CDDS_PREERASE) != CDRF_SKIPDEFAULT) {
-        if (GetWindowTheme (infoPtr->hwndSelf)) {
-            DrawThemeParentBackground (infoPtr->hwndSelf, hdc, 0);
-        }
-#ifndef __REACTOS__
-        else {
-#else
-        {
-#endif
-            HBRUSH brush = (HBRUSH)SendMessageW(infoPtr->hwndNotify, WM_CTLCOLORSTATIC,
-                    (WPARAM)hdc, (LPARAM)infoPtr->hwndSelf);
-            FillRect (hdc, &rcClient, brush ? brush : GetSysColorBrush(COLOR_BTNFACE));
-        }
+        notify_customdraw(infoPtr, &nmcd, CDDS_PREERASE) != CDRF_SKIPDEFAULT)
+    {
+        HBRUSH brush = (HBRUSH)SendMessageW(infoPtr->hwndNotify, WM_CTLCOLORSTATIC,
+                (WPARAM)hdc, (LPARAM)infoPtr->hwndSelf);
+        FillRect (hdc, &rcClient, brush ? brush : GetSysColorBrush(COLOR_BTNFACE));
         if (gcdrf != CDRF_DODEFAULT)
 	    notify_customdraw(infoPtr, &nmcd, CDDS_POSTERASE);
     }
@@ -1532,8 +1480,6 @@ TRACKBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
 	 }
     }
     
-    OpenThemeData (hwnd, themeClass);
-
     return 0;
 }
 
@@ -1549,7 +1495,6 @@ TRACKBAR_Destroy (TRACKBAR_INFO *infoPtr)
     infoPtr->tics = NULL;
 
     SetWindowLongPtrW (infoPtr->hwndSelf, 0, 0);
-    CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
     Free (infoPtr);
 
     return 0;
@@ -1693,17 +1638,6 @@ TRACKBAR_Timer (TRACKBAR_INFO *infoPtr)
     return 0;
 }
 
-
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT theme_changed (const TRACKBAR_INFO* infoPtr)
-{
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-    CloseThemeData (theme);
-    OpenThemeData (infoPtr->hwndSelf, themeClass);
-    return 0;
-}
-
-
 static LRESULT
 TRACKBAR_MouseMove (TRACKBAR_INFO *infoPtr, INT x, INT y)
 {
@@ -1722,32 +1656,6 @@ TRACKBAR_MouseMove (TRACKBAR_INFO *infoPtr, INT x, INT y)
 
     if (!(infoPtr->flags & TB_DRAG_MODE)) 
     {
-        if (GetWindowTheme (infoPtr->hwndSelf))
-        {
-            DWORD oldFlags = infoPtr->flags;
-            POINT pt;
-            pt.x = x;
-            pt.y = y;
-            if (PtInRect (&infoPtr->rcThumb, pt))
-            {
-                TRACKMOUSEEVENT tme;
-                tme.cbSize = sizeof( tme );
-                tme.dwFlags = TME_LEAVE;
-                tme.hwndTrack = infoPtr->hwndSelf;
-                TrackMouseEvent( &tme );
-                infoPtr->flags |= TB_THUMB_HOT;
-            }
-            else
-            {
-                TRACKMOUSEEVENT tme;
-                tme.cbSize = sizeof( tme );
-                tme.dwFlags = TME_CANCEL;
-                tme.hwndTrack = infoPtr->hwndSelf;
-                TrackMouseEvent( &tme );
-                infoPtr->flags &= ~TB_THUMB_HOT; 
-            }
-            if (oldFlags != infoPtr->flags) InvalidateRect (infoPtr->hwndSelf, &infoPtr->rcThumb, FALSE);
-        }
         return TRUE;
     }
 
@@ -2026,7 +1934,7 @@ TRACKBAR_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRACKBAR_StyleChanged (infoPtr, wParam, (LPSTYLESTRUCT)lParam);
 
     case WM_THEMECHANGED:
-        return theme_changed (infoPtr);
+        return 0;
 
     case WM_TIMER:
 	return TRACKBAR_Timer (infoPtr);

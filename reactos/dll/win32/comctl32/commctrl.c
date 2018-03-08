@@ -295,9 +295,7 @@ static void InitializeClasses()
         activated = ActivateActCtx(hActCtx6, &ulCookie);
         RegisterControls(TRUE);      /* Register the classes pretending to be v6 */
         if (activated) DeactivateActCtx(0, ulCookie);
-
-        /* Initialize the themed controls only when the v6 manifest is present */
-        THEMING_Initialize (hActCtx5, hActCtx6);
+        // no theming
     }
 }
 
@@ -316,7 +314,7 @@ static void UninitializeClasses()
     if (hActCtx6 != INVALID_HANDLE_VALUE)
     {
         activated = ActivateActCtx(hActCtx6, &ulCookie);
-        THEMING_Uninitialize();
+        // no theming
         UnregisterControls(TRUE);
         if (activated) DeactivateActCtx(0, ulCookie);
     }
@@ -395,8 +393,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
             TREEVIEW_Register ();
             UPDOWN_Register ();
 
-            /* subclass user32 controls */
-            THEMING_Initialize ();
+            // no theming
 #else
             InitializeClasses();
 #endif
@@ -406,8 +403,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	case DLL_PROCESS_DETACH:
             if (lpvReserved) break;
 #ifndef __REACTOS__
-            /* clean up subclassing */
-            THEMING_Uninitialize();
+            // no theming
 
             /* unregister all common control classes */
             ANIMATE_Unregister ();

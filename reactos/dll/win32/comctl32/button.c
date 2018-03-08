@@ -236,7 +236,7 @@ HRGN set_control_clipping( HDC hdc, const RECT *rect )
     return hrgn;
 }
 
-BOOL BUTTON_PaintWithTheme(HTHEME theme, HWND hwnd, HDC hParamDC, LPARAM prfFlag);
+BOOL BUTTON_PaintWithTheme(HANDLE theme, HWND hwnd, HDC hParamDC, LPARAM prfFlag);
 WCHAR *get_button_text( HWND hwnd );
 
 static inline LONG_PTR get_button_image(HWND hwnd)
@@ -290,17 +290,11 @@ static inline UINT get_button_type( LONG window_style )
 /* paint a button of any type */
 static inline void paint_button( HWND hwnd, LONG style, UINT action )
 {
-    HTHEME theme = GetWindowTheme(hwnd);
     RECT rc;
     HDC hdc = GetDC( hwnd );
     /* GetDC appears to give a dc with a clip rect that includes the whoe parent, not sure if it is correct or not. */
     GetClientRect(hwnd, &rc);
     IntersectClipRect (hdc, rc.left, rc. top, rc.right, rc.bottom);
-    if (theme && BUTTON_PaintWithTheme(theme, hwnd, hdc, 0))
-    {
-        ReleaseDC( hwnd, hdc );
-        return;
-    }
     if (btnPaintFunc[style] && IsWindowVisible(hwnd))
     {
         btnPaintFunc[style]( hwnd, hdc, action );
@@ -308,7 +302,7 @@ static inline void paint_button( HWND hwnd, LONG style, UINT action )
     ReleaseDC( hwnd, hdc );
 }
 
-BOOL BUTTON_GetIdealSize(HTHEME theme, HWND hwnd, SIZE* psize)
+BOOL BUTTON_GetIdealSize(HANDLE theme, HWND hwnd, SIZE* psize)
 {
     PBUTTON_DATA pdata;
     HDC hdc;
@@ -324,22 +318,8 @@ BOOL BUTTON_GetIdealSize(HTHEME theme, HWND hwnd, SIZE* psize)
     if (!pdata || !text || !hdc || !text[0])
         goto cleanup;
 
-    /* FIXME : Should use GetThemeTextExtent but unfortunately uses DrawTextW which is broken */
-    if (theme)
-    {
-        HRESULT hr = GetThemeFont(theme, hdc, BP_PUSHBUTTON, PBS_NORMAL, TMT_FONT, &logfont);
-        if(SUCCEEDED(hr))
-        {
-            hFont = CreateFontIndirectW(&logfont);
-            if(hFont)
-                hPrevFont = SelectObject( hdc, hFont );
-        }
-    }
-    else
-    {
-        if (pdata->font)
-            hPrevFont = SelectObject( hdc, pdata->font );
-    }
+    if (pdata->font)
+        hPrevFont = SelectObject( hdc, pdata->font );
 
     GetTextExtentPoint32W(hdc, text, wcslen(text), &TextSize);
 
@@ -365,21 +345,8 @@ BOOL BUTTON_GetIdealSize(HTHEME theme, HWND hwnd, SIZE* psize)
         ImageSize.cx = ImageSize.cy = 0;
     }
 
-    if (theme)
-    {
-        RECT rcContents = {0};
-        RECT rcButtonExtent = {0};
-        rcContents.right = ImageSize.cx + TextSize.cx;
-        rcContents.bottom = max(ImageSize.cy, TextSize.cy);
-        GetThemeBackgroundExtent(theme, hdc, BP_PUSHBUTTON, PBS_NORMAL, &rcContents, &rcButtonExtent);
-        ButtonSize.cx = rcButtonExtent.right - rcButtonExtent.left;
-        ButtonSize.cy = rcButtonExtent.bottom - rcButtonExtent.top;
-    }
-    else
-    {
-        ButtonSize.cx = ImageSize.cx + TextSize.cx + 5;
-        ButtonSize.cy = max(ImageSize.cy, TextSize.cy  + 7);
-    }
+    ButtonSize.cx = ImageSize.cx + TextSize.cx + 5;
+    ButtonSize.cy = max(ImageSize.cy, TextSize.cy  + 7);
 
     *psize = ButtonSize;
     ret = TRUE;
@@ -500,15 +467,10 @@ LRESULT WINAPI ButtonWndProc_common(HWND hWnd, UINT uMsg,
             _SetButtonData(hWnd, NULL);
         }
         case WM_CREATE:
-            OpenThemeData(hWnd, WC_BUTTONW);
             break;
         case WM_DESTROY:
-            CloseThemeData (GetWindowTheme(hWnd));
             break;
         case WM_THEMECHANGED:
-            CloseThemeData (GetWindowTheme(hWnd));
-            OpenThemeData(hWnd, WC_BUTTONW);
-            InvalidateRect(hWnd, NULL, TRUE);
             break;
         case WM_MOUSELEAVE:
         {
@@ -599,7 +561,6 @@ LRESULT WINAPI ButtonWndProc_common(HWND hWnd, UINT uMsg,
         }
         case BCM_GETIDEALSIZE:
         {
-            HTHEME theme = GetWindowTheme(hWnd);
             BOOL ret = FALSE;
             SIZE* pSize = (SIZE*)lParam;
 
@@ -607,7 +568,7 @@ LRESULT WINAPI ButtonWndProc_common(HWND hWnd, UINT uMsg,
                 btn_type == BS_DEFPUSHBUTTON ||
                 btn_type == BS_USERBUTTON)
             {
-                ret = BUTTON_GetIdealSize(theme, hWnd, pSize);
+                ret = BUTTON_GetIdealSize(NULL, hWnd, pSize);
             }
 
             if (!ret)
@@ -700,14 +661,6 @@ LRESULT WINAPI ButtonWndProc_common(HWND hWnd, UINT uMsg,
     {
         PAINTSTRUCT ps;
         HDC hdc = wParam ? (HDC)wParam : BeginPaint( hWnd, &ps );
-#ifndef _USER32_
-        HTHEME theme = GetWindowTheme(hWnd);
-        if (theme && BUTTON_PaintWithTheme(theme, hWnd, hdc, uMsg == WM_PRINTCLIENT ? lParam : 0))
-        {
-            if ( !wParam ) EndPaint( hWnd, &ps );
-            return 0;
-        }
-#endif
         if (btnPaintFunc[btn_type])
         {
             int nOldMode = SetBkMode( hdc, OPAQUE );

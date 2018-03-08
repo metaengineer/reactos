@@ -138,8 +138,6 @@ typedef struct
 #define TAB_HOTTRACK_TIMER            1
 #define TAB_HOTTRACK_TIMER_INTERVAL   100   /* milliseconds */
 
-static const WCHAR themeClass[] = { 'T','a','b',0 };
-
 static inline TAB_ITEM* TAB_GetItem(const TAB_INFO *infoPtr, INT i)
 {
     assert(i >= 0 && i < infoPtr->uNumItem);
@@ -731,14 +729,7 @@ static inline void hottrack_refresh(const TAB_INFO *infoPtr, int tabIndex)
 {
     if (tabIndex == -1) return;
 
-    if (GetWindowTheme (infoPtr->hwnd))
-    {
-        RECT rect;
-        TAB_InternalGetItemRect(infoPtr, tabIndex, &rect, NULL);
-        InvalidateRect (infoPtr->hwnd, &rect, FALSE);
-    }
-    else
-        TAB_DrawLoneItemInterior(infoPtr, tabIndex);
+    TAB_DrawLoneItemInterior(infoPtr, tabIndex);
 }
 
 /******************************************************************************
@@ -821,7 +812,7 @@ TAB_RecalcHotTrack
   if (out_redrawEnter != NULL)
     *out_redrawEnter = -1;
 
-  if ((infoPtr->dwStyle & TCS_HOTTRACK) || GetWindowTheme(infoPtr->hwnd))
+  if (infoPtr->dwStyle & TCS_HOTTRACK)
   {
     POINT pt;
     UINT  flags;
@@ -1499,8 +1490,7 @@ TAB_EraseTabInterior(const TAB_INFO *infoPtr, HDC hdc, INT iItem, const RECT *dr
     else /* !TCS_BUTTONS */
     {
         InflateRect(&rTemp, -2, -2);
-        if (!GetWindowTheme (infoPtr->hwnd))
-	    FillRect(hdc, &rTemp, hbr);
+        FillRect(hdc, &rTemp, hbr);
     }
 
     /* highlighting is drawn on top of previous fills */
@@ -1671,17 +1661,14 @@ TAB_DrawItemInterior(const TAB_INFO *infoPtr, HDC hdc, INT iItem, RECT *drawRect
    * Setup for text output
   */
   oldBkMode = SetBkMode(hdc, TRANSPARENT);
-  if (!GetWindowTheme (infoPtr->hwnd) || (infoPtr->dwStyle & TCS_BUTTONS))
-  {
-    if ((infoPtr->dwStyle & TCS_HOTTRACK) && (iItem == infoPtr->iHotTracked) &&
-        !(infoPtr->dwStyle & TCS_FLATBUTTONS))
+  if ((infoPtr->dwStyle & TCS_HOTTRACK) && (iItem == infoPtr->iHotTracked) &&
+          !(infoPtr->dwStyle & TCS_FLATBUTTONS))
       SetTextColor(hdc, comctl32_color.clrHighlight);
-    else if (TAB_GetItem(infoPtr, iItem)->dwState & TCIS_HIGHLIGHTED)
+  else if (TAB_GetItem(infoPtr, iItem)->dwState & TCIS_HIGHLIGHTED)
       SetTextColor(hdc, comctl32_color.clrHighlightText);
-    else
+  else
       SetTextColor(hdc, comctl32_color.clrBtnText);
-  }
-
+  
   /*
    * if owner draw, tell the owner to draw
    */
@@ -1943,8 +1930,7 @@ static void TAB_DrawItem(const TAB_INFO *infoPtr, HDC  hdc, INT  iItem)
   INT       clRight = 0;
   INT       clBottom = 0;
   COLORREF  bkgnd, corner;
-  HTHEME    theme;
-
+  
   /*
    * Get the rectangle for the item.
    */
@@ -2025,54 +2011,7 @@ static void TAB_DrawItem(const TAB_INFO *infoPtr, HDC  hdc, INT  iItem)
        */
       fillRect = r;
 
-      /* Draw themed tabs - but only if they are at the top.
-       * Windows draws even side or bottom tabs themed, with wacky results.
-       * However, since in Wine apps may get themed that did not opt in via
-       * a manifest avoid theming when we know the result will be wrong */
-      if ((theme = GetWindowTheme (infoPtr->hwnd)) 
-          && ((infoPtr->dwStyle & (TCS_VERTICAL | TCS_BOTTOM)) == 0))
-      {
-          static const int partIds[8] = {
-              /* Normal item */
-              TABP_TABITEM,
-              TABP_TABITEMLEFTEDGE,
-              TABP_TABITEMRIGHTEDGE,
-              TABP_TABITEMBOTHEDGE,
-              /* Selected tab */
-              TABP_TOPTABITEM,
-              TABP_TOPTABITEMLEFTEDGE,
-              TABP_TOPTABITEMRIGHTEDGE,
-              TABP_TOPTABITEMBOTHEDGE,
-          };
-          int partIndex = 0;
-          int stateId = TIS_NORMAL;
-
-          /* selected and unselected tabs have different parts */
-          if (iItem == infoPtr->iSelected)
-              partIndex += 4;
-          /* The part also differs on the position of a tab on a line.
-           * "Visually" determining the position works well enough. */
-          GetClientRect(infoPtr->hwnd, &r1);
-          if(selectedRect.left == 0)
-              partIndex += 1;
-          if(selectedRect.right == r1.right)
-              partIndex += 2;
-
-          if (iItem == infoPtr->iSelected)
-              stateId = TIS_SELECTED;
-          else if (iItem == infoPtr->iHotTracked)
-              stateId = TIS_HOT;
-          else if (iItem == infoPtr->uFocus)
-              stateId = TIS_FOCUSED;
-
-          /* Adjust rectangle for bottommost row */
-          if (TAB_GetItem(infoPtr, iItem)->rect.top == infoPtr->uNumRows-1)
-            r.bottom += 3;
-
-          DrawThemeBackground (theme, hdc, partIds[partIndex], stateId, &r, NULL);
-          GetThemeBackgroundContentRect (theme, hdc, partIds[partIndex], stateId, &r, &r);
-      }
-      else if(infoPtr->dwStyle & TCS_VERTICAL)
+      if(infoPtr->dwStyle & TCS_VERTICAL)
       {
 	/* These are for adjusting the drawing of a Selected tab      */
 	/* The initial values are for the normal case of non-Selected */
@@ -2284,8 +2223,7 @@ static void TAB_DrawItem(const TAB_INFO *infoPtr, HDC  hdc, INT  iItem)
 static void TAB_DrawBorder(const TAB_INFO *infoPtr, HDC hdc)
 {
   RECT rect;
-  HTHEME theme = GetWindowTheme (infoPtr->hwnd);
-
+  
   GetClientRect (infoPtr->hwnd, &rect);
 
   /*
@@ -2306,10 +2244,7 @@ static void TAB_DrawBorder(const TAB_INFO *infoPtr, HDC hdc)
 
   TRACE("border=(%s)\n", wine_dbgstr_rect(&rect));
 
-  if (theme)
-      DrawThemeBackground (theme, hdc, TABP_PANE, 0, &rect, NULL);
-  else
-      DrawEdge(hdc, &rect, EDGE_RAISED, BF_SOFT|BF_RECT);
+  DrawEdge(hdc, &rect, EDGE_RAISED, BF_SOFT|BF_RECT);
 }
 
 /******************************************************************************
@@ -3018,8 +2953,6 @@ static LRESULT TAB_Create (HWND hwnd, LPARAM lParam)
     }
   }
 
-  OpenThemeData (infoPtr->hwnd, themeClass);
-  
   /*
    * We need to get text information so we need a DC and we need to select
    * a font.
@@ -3081,19 +3014,8 @@ TAB_Destroy (TAB_INFO *infoPtr)
   if (infoPtr->iHotTracked >= 0)
     KillTimer(infoPtr->hwnd, TAB_HOTTRACK_TIMER);
 
-  CloseThemeData (GetWindowTheme (infoPtr->hwnd));
-
   Free (infoPtr);
   return 0;
-}
-
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT theme_changed(const TAB_INFO *infoPtr)
-{
-    HTHEME theme = GetWindowTheme (infoPtr->hwnd);
-    CloseThemeData (theme);
-    OpenThemeData (infoPtr->hwnd, themeClass);
-    return 0;
 }
 
 static LRESULT TAB_NCCalcSize(WPARAM wParam)
@@ -3392,7 +3314,7 @@ TAB_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return 0;
 
     case WM_THEMECHANGED:
-      return theme_changed (infoPtr);
+      return 0;
 
     case WM_KILLFOCUS:
       TAB_KillFocus(infoPtr);

@@ -182,9 +182,6 @@ typedef struct _TREEITEM    /* HTREEITEM is a _TREEINFO *. */
 #define GETTXTCOLOR(x)  ((x) == CLR_NONE    ? comctl32_color.clrWindowText : (x))
 #define GETINSCOLOR(x)  ((x) == CLR_DEFAULT ? comctl32_color.clrBtnText    : (x))
 
-static const WCHAR themeClass[] = { 'T','r','e','e','v','i','e','w',0 };
-
-
 typedef VOID (*TREEVIEW_ItemEnumFunc)(TREEVIEW_INFO *, TREEVIEW_ITEM *,LPVOID);
 
 
@@ -2421,67 +2418,54 @@ TREEVIEW_DrawItemLines(const TREEVIEW_INFO *infoPtr, HDC hdc, const TREEVIEW_ITE
     {
 	if (item->cChildren)
 	{
-            HTHEME theme = GetWindowTheme(infoPtr->hwnd);
-            if (theme)
+            LONG height = item->rect.bottom - item->rect.top;
+            LONG width  = item->stateOffset - item->linesOffset;
+            LONG rectsize = min(height, width) / 4;
+            /* plussize = ceil(rectsize * 3/4) */
+            LONG plussize = (rectsize + 1) * 3 / 4;
+
+            HPEN new_pen  = CreatePen(PS_SOLID, 0, GETLINECOLOR(infoPtr->clrLine));
+            HPEN old_pen  = SelectObject(hdc, new_pen);
+
+            Rectangle(hdc, centerx - rectsize - 1, centery - rectsize - 1,
+                      centerx + rectsize + 2, centery + rectsize + 2);
+
+            SelectObject(hdc, old_pen);
+            DeleteObject(new_pen);
+
+            /* draw +/- signs with current text color */
+            new_pen = CreatePen(PS_SOLID, 0, GETTXTCOLOR(infoPtr->clrText));
+            old_pen = SelectObject(hdc, new_pen);
+
+            if (height < 18 || width < 18)
             {
-                RECT glyphRect = item->rect;
-                glyphRect.left = item->linesOffset;
-                glyphRect.right = item->stateOffset;
-                DrawThemeBackground (theme, hdc, TVP_GLYPH,
-                    (item->state & TVIS_EXPANDED) ? GLPS_OPENED : GLPS_CLOSED,
-                    &glyphRect, NULL);
+                MoveToEx(hdc, centerx - plussize + 1, centery, NULL);
+                LineTo(hdc, centerx + plussize, centery);
+    
+                if (!(item->state & TVIS_EXPANDED) ||
+                     (item->state & TVIS_EXPANDPARTIAL))
+                {
+                    MoveToEx(hdc, centerx, centery - plussize + 1, NULL);
+                    LineTo(hdc, centerx, centery + plussize);
+                }
             }
             else
             {
-                LONG height = item->rect.bottom - item->rect.top;
-                LONG width  = item->stateOffset - item->linesOffset;
-                LONG rectsize = min(height, width) / 4;
-                /* plussize = ceil(rectsize * 3/4) */
-                LONG plussize = (rectsize + 1) * 3 / 4;
+                Rectangle(hdc, centerx - plussize + 1, centery - 1,
+                centerx + plussize, centery + 2);
 
-                HPEN new_pen  = CreatePen(PS_SOLID, 0, GETLINECOLOR(infoPtr->clrLine));
-                HPEN old_pen  = SelectObject(hdc, new_pen);
-
-                Rectangle(hdc, centerx - rectsize - 1, centery - rectsize - 1,
-                          centerx + rectsize + 2, centery + rectsize + 2);
-
-                SelectObject(hdc, old_pen);
-                DeleteObject(new_pen);
-
-                /* draw +/- signs with current text color */
-                new_pen = CreatePen(PS_SOLID, 0, GETTXTCOLOR(infoPtr->clrText));
-                old_pen = SelectObject(hdc, new_pen);
-
-                if (height < 18 || width < 18)
+                if (!(item->state & TVIS_EXPANDED) ||
+                     (item->state & TVIS_EXPANDPARTIAL))
                 {
-                    MoveToEx(hdc, centerx - plussize + 1, centery, NULL);
-                    LineTo(hdc, centerx + plussize, centery);
-    
-                    if (!(item->state & TVIS_EXPANDED) ||
-                         (item->state & TVIS_EXPANDPARTIAL))
-                    {
-                        MoveToEx(hdc, centerx, centery - plussize + 1, NULL);
-                        LineTo(hdc, centerx, centery + plussize);
-                    }
+                    Rectangle(hdc, centerx - 1, centery - plussize + 1,
+                    centerx + 2, centery + plussize);
+                    SetPixel(hdc, centerx - 1, centery, clrBk);
+                    SetPixel(hdc, centerx + 1, centery, clrBk);
                 }
-                else
-                {
-                    Rectangle(hdc, centerx - plussize + 1, centery - 1,
-                    centerx + plussize, centery + 2);
-
-                    if (!(item->state & TVIS_EXPANDED) ||
-                         (item->state & TVIS_EXPANDPARTIAL))
-                    {
-                        Rectangle(hdc, centerx - 1, centery - plussize + 1,
-                        centerx + 2, centery + plussize);
-                        SetPixel(hdc, centerx - 1, centery, clrBk);
-                        SetPixel(hdc, centerx + 1, centery, clrBk);
-                    }
-                }
-
-                SelectObject(hdc, old_pen);
-                DeleteObject(new_pen);
             }
+
+            SelectObject(hdc, old_pen);
+            DeleteObject(new_pen);
 	}
     }
     SelectObject(hdc, hbrOld);
@@ -5157,8 +5141,6 @@ TREEVIEW_Create(HWND hwnd, const CREATESTRUCTW *lpcs)
     ShowScrollBar(hwnd, SB_VERT, FALSE);
     ShowScrollBar(hwnd, SB_HORZ, FALSE);
     
-    OpenThemeData (hwnd, themeClass);
-
     return 0;
 }
 
@@ -5180,8 +5162,6 @@ TREEVIEW_Destroy(TREEVIEW_INFO *infoPtr)
     if (infoPtr->hwndEdit)
 	SetWindowLongPtrW(infoPtr->hwndEdit, GWLP_WNDPROC,
 		       (DWORD_PTR)infoPtr->wpEditOrig);
-
-    CloseThemeData (GetWindowTheme (infoPtr->hwnd));
 
     /* Deassociate treeview from the window before doing anything drastic. */
     SetWindowLongPtrW(infoPtr->hwnd, 0, 0);
@@ -5428,43 +5408,7 @@ TREEVIEW_MouseMove (TREEVIEW_INFO * infoPtr, LPARAM lParam)
 /* Draw themed border */
 static BOOL TREEVIEW_NCPaint (const TREEVIEW_INFO *infoPtr, HRGN region, LPARAM lParam)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->hwnd);
-    HDC dc;
-    RECT r;
-    HRGN cliprgn;
-    int cxEdge = GetSystemMetrics (SM_CXEDGE),
-        cyEdge = GetSystemMetrics (SM_CYEDGE);
-
-    if (!theme)
-        return DefWindowProcW (infoPtr->hwnd, WM_NCPAINT, (WPARAM)region, lParam);
-
-    GetWindowRect(infoPtr->hwnd, &r);
-
-    cliprgn = CreateRectRgn (r.left + cxEdge, r.top + cyEdge,
-        r.right - cxEdge, r.bottom - cyEdge);
-    if (region != (HRGN)1)
-        CombineRgn (cliprgn, cliprgn, region, RGN_AND);
-    OffsetRect(&r, -r.left, -r.top);
-
-#ifdef __REACTOS__ /* r73789 */
-    dc = GetWindowDC(infoPtr->hwnd);
-    /* Exclude client part */
-    ExcludeClipRect(dc, r.left + cxEdge, r.top + cyEdge,
-        r.right - cxEdge, r.bottom -cyEdge);
-#else
-    dc = GetDCEx(infoPtr->hwnd, region, DCX_WINDOW|DCX_INTERSECTRGN);
-    OffsetRect(&r, -r.left, -r.top);
-#endif
-
-    if (IsThemeBackgroundPartiallyTransparent (theme, 0, 0))
-        DrawThemeParentBackground(infoPtr->hwnd, dc, &r);
-    DrawThemeBackground (theme, dc, 0, 0, &r, 0);
-    ReleaseDC(infoPtr->hwnd, dc);
-
-    /* Call default proc to get the scrollbars etc. painted */
-    DefWindowProcW (infoPtr->hwnd, WM_NCPAINT, (WPARAM)cliprgn, 0);
-
-    return TRUE;
+    return DefWindowProcW (infoPtr->hwnd, WM_NCPAINT, (WPARAM)region, lParam);
 }
 
 static LRESULT
@@ -5621,16 +5565,6 @@ TREEVIEW_KillFocus(const TREEVIEW_INFO *infoPtr)
     TREEVIEW_SendSimpleNotify(infoPtr, NM_KILLFOCUS);
     return 0;
 }
-
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT TREEVIEW_ThemeChanged(const TREEVIEW_INFO *infoPtr)
-{
-    HTHEME theme = GetWindowTheme (infoPtr->hwnd);
-    CloseThemeData (theme);
-    OpenThemeData (infoPtr->hwnd, themeClass);
-    return 0;
-}
-
 
 static LRESULT WINAPI
 TREEVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -5875,7 +5809,7 @@ TREEVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return TREEVIEW_HandleTimer(infoPtr, wParam);
 
     case WM_THEMECHANGED:
-        return TREEVIEW_ThemeChanged (infoPtr);
+        return 0;
 
     case WM_VSCROLL:
 	return TREEVIEW_VScroll(infoPtr, wParam);

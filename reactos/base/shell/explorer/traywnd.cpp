@@ -2062,8 +2062,7 @@ ChangePos:
 
     LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        bHandled=0;
-        return FALSE;
+        return TRUE;
     }
 
     LRESULT OnSettingChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

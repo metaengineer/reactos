@@ -140,8 +140,6 @@ typedef struct
     SIZE dim;           /* [cx,cy] - dimensions of calendars matrix, row/column count */
 } MONTHCAL_INFO, *LPMONTHCAL_INFO;
 
-static const WCHAR themeClass[] = { 'S','c','r','o','l','l','b','a','r',0 };
-
 /* empty SYSTEMTIME const */
 static const SYSTEMTIME st_null;
 /* valid date limits */
@@ -244,10 +242,12 @@ static inline BOOL MONTHCAL_IsDateEqual(const SYSTEMTIME *first, const SYSTEMTIM
 /* make sure that date fields are valid */
 static BOOL MONTHCAL_ValidateDate(const SYSTEMTIME *time)
 {
-  if(time->wMonth < 1 || time->wMonth > 12 ) return FALSE;
-  if(time->wDay > MONTHCAL_MonthLength(time->wMonth, time->wYear)) return FALSE;
+    if (time->wMonth < 1 || time->wMonth > 12 )
+        return FALSE;
+    if (time->wDay == 0 || time->wDay > MONTHCAL_MonthLength(time->wMonth, time->wYear))
+        return FALSE;
 
-  return TRUE;
+    return TRUE;
 }
 
 /* Copies timestamp part only.
@@ -626,10 +626,15 @@ static inline void MONTHCAL_GetDayRectI(const MONTHCAL_INFO *infoPtr, RECT *r,
  *
  * NOTE: when calendar index is unknown pass -1
  */
-static inline void MONTHCAL_GetDayRect(const MONTHCAL_INFO *infoPtr, const SYSTEMTIME *date,
-    RECT *r, INT calIdx)
+static BOOL MONTHCAL_GetDayRect(const MONTHCAL_INFO *infoPtr, const SYSTEMTIME *date, RECT *r, INT calIdx)
 {
   INT col, row;
+
+  if (!MONTHCAL_ValidateDate(date))
+  {
+      SetRectEmpty(r);
+      return FALSE;
+  }
 
   if (calIdx == -1)
   {
@@ -653,6 +658,8 @@ static inline void MONTHCAL_GetDayRect(const MONTHCAL_INFO *infoPtr, const SYSTE
 
   MONTHCAL_GetDayPos(infoPtr, date, &col, &row, calIdx);
   MONTHCAL_GetDayRectI(infoPtr, r, col, row, calIdx);
+
+  return TRUE;
 }
 
 static LRESULT
@@ -724,19 +731,18 @@ static BOOL MONTHCAL_SetDayFocus(MONTHCAL_INFO *infoPtr, const SYSTEMTIME *st)
     if(MONTHCAL_IsDateEqual(&infoPtr->focusedSel, st)) return FALSE;
 
     /* invalidate old focused day */
-    MONTHCAL_GetDayRect(infoPtr, &infoPtr->focusedSel, &r, -1);
-    InvalidateRect(infoPtr->hwndSelf, &r, FALSE);
+    if (MONTHCAL_GetDayRect(infoPtr, &infoPtr->focusedSel, &r, -1))
+      InvalidateRect(infoPtr->hwndSelf, &r, FALSE);
 
     infoPtr->focusedSel = *st;
   }
 
-  MONTHCAL_GetDayRect(infoPtr, &infoPtr->focusedSel, &r, -1);
+  /* On set invalidates new day, on reset clears previous focused day. */
+  if (MONTHCAL_GetDayRect(infoPtr, &infoPtr->focusedSel, &r, -1))
+    InvalidateRect(infoPtr->hwndSelf, &r, FALSE);
 
   if(!st && MONTHCAL_ValidateDate(&infoPtr->focusedSel))
     infoPtr->focusedSel = st_null;
-
-  /* on set invalidates new day, on reset clears previous focused day */
-  InvalidateRect(infoPtr->hwndSelf, &r, FALSE);
 
   return TRUE;
 }
@@ -814,39 +820,18 @@ static void MONTHCAL_DrawDay(const MONTHCAL_INFO *infoPtr, HDC hdc, const SYSTEM
 
 static void MONTHCAL_PaintButton(MONTHCAL_INFO *infoPtr, HDC hdc, enum nav_direction button)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     RECT *r = button == DIRECTION_FORWARD ? &infoPtr->titlebtnnext : &infoPtr->titlebtnprev;
     BOOL pressed = button == DIRECTION_FORWARD ? infoPtr->status & MC_NEXTPRESSED :
                                                  infoPtr->status & MC_PREVPRESSED;
-    if (theme)
-    {
-        static const int states[] = {
-            /* Prev button */
-            ABS_LEFTNORMAL,  ABS_LEFTPRESSED,  ABS_LEFTDISABLED,
-            /* Next button */
-            ABS_RIGHTNORMAL, ABS_RIGHTPRESSED, ABS_RIGHTDISABLED
-        };
-        int stateNum = button == DIRECTION_FORWARD ? 3 : 0;
-        if (pressed)
-            stateNum += 1;
-        else
-        {
-            if (infoPtr->dwStyle & WS_DISABLED) stateNum += 2;
-        }
-        DrawThemeBackground (theme, hdc, SBP_ARROWBTN, states[stateNum], r, NULL);
-    }
+    int style = button == DIRECTION_FORWARD ? DFCS_SCROLLRIGHT : DFCS_SCROLLLEFT;
+    if (pressed)
+        style |= DFCS_PUSHED;
     else
     {
-        int style = button == DIRECTION_FORWARD ? DFCS_SCROLLRIGHT : DFCS_SCROLLLEFT;
-        if (pressed)
-            style |= DFCS_PUSHED;
-        else
-        {
-            if (infoPtr->dwStyle & WS_DISABLED) style |= DFCS_INACTIVE;
-        }
-        
-        DrawFrameControl(hdc, r, DFC_SCROLL, style);
+        if (infoPtr->dwStyle & WS_DISABLED) style |= DFCS_INACTIVE;
     }
+        
+    DrawFrameControl(hdc, r, DFC_SCROLL, style);
 }
 
 /* paint a title with buttons and month/year string */
@@ -1725,21 +1710,22 @@ MONTHCAL_GetToday(const MONTHCAL_INFO *infoPtr, SYSTEMTIME *today)
 static BOOL
 MONTHCAL_UpdateToday(MONTHCAL_INFO *infoPtr, const SYSTEMTIME *today)
 {
-  RECT new_r, old_r;
+    RECT rect;
 
-  if(MONTHCAL_IsDateEqual(today, &infoPtr->todaysDate)) return FALSE;
+    if (MONTHCAL_IsDateEqual(today, &infoPtr->todaysDate))
+        return FALSE;
 
-  MONTHCAL_GetDayRect(infoPtr, &infoPtr->todaysDate, &old_r, -1);
-  MONTHCAL_GetDayRect(infoPtr, today, &new_r, -1);
+    /* Invalidate old and new today day rectangle, and today label. */
+    if (MONTHCAL_GetDayRect(infoPtr, &infoPtr->todaysDate, &rect, -1))
+        InvalidateRect(infoPtr->hwndSelf, &rect, FALSE);
 
-  infoPtr->todaysDate = *today;
+    if (MONTHCAL_GetDayRect(infoPtr, today, &rect, -1))
+        InvalidateRect(infoPtr->hwndSelf, &rect, FALSE);
 
-  /* only two days need redrawing */
-  InvalidateRect(infoPtr->hwndSelf, &old_r, FALSE);
-  InvalidateRect(infoPtr->hwndSelf, &new_r, FALSE);
-  /* and today label */
-  InvalidateRect(infoPtr->hwndSelf, &infoPtr->todayrect, FALSE);
-  return TRUE;
+    infoPtr->todaysDate = *today;
+
+    InvalidateRect(infoPtr->hwndSelf, &infoPtr->todayrect, FALSE);
+    return TRUE;
 }
 
 /* MCM_SETTODAT handler */
@@ -1894,6 +1880,7 @@ MONTHCAL_HitTest(const MONTHCAL_INFO *infoPtr, MCHITTESTINFO *lpht)
   else if(PtInRect(&infoPtr->calendars[calIdx].days, lpht->pt))
   {
       htinfo.iOffset = calIdx;
+      htinfo.st.wDay = ht_month->wDay;
       htinfo.st.wYear  = ht_month->wYear;
       htinfo.st.wMonth = ht_month->wMonth;
       /* previous month only valid for first calendar */
@@ -2690,15 +2677,6 @@ static LRESULT MONTHCAL_SetFont(MONTHCAL_INFO *infoPtr, HFONT hFont, BOOL redraw
     return (LRESULT)hOldFont;
 }
 
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT theme_changed (const MONTHCAL_INFO* infoPtr)
-{
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-    CloseThemeData (theme);
-    OpenThemeData (infoPtr->hwndSelf, themeClass);
-    return 0;
-}
-
 static INT MONTHCAL_StyleChanged(MONTHCAL_INFO *infoPtr, WPARAM wStyleType,
                                  const STYLESTRUCT *lpss)
 {
@@ -2800,8 +2778,6 @@ MONTHCAL_Create(HWND hwnd, LPCREATESTRUCTW lpcs)
   /* today auto update timer, to be freed only on control destruction */
   SetTimer(infoPtr->hwndSelf, MC_TODAYUPDATETIMER, MC_TODAYUPDATEDELAY, 0);
 
-  OpenThemeData (infoPtr->hwndSelf, themeClass);
-
   return 0;
 
 fail:
@@ -2820,8 +2796,6 @@ MONTHCAL_Destroy(MONTHCAL_INFO *infoPtr)
   Free(infoPtr->monthdayState);
   Free(infoPtr->calendars);
   SetWindowLongPtrW(infoPtr->hwndSelf, 0, 0);
-
-  CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
 
   for (i = 0; i < BrushLast; i++) DeleteObject(infoPtr->brushes[i]);
   for (i = 0; i < PenLast; i++) DeleteObject(infoPtr->pens[i]);
@@ -2995,7 +2969,7 @@ MONTHCAL_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return MONTHCAL_Timer(infoPtr, wParam);
     
   case WM_THEMECHANGED:
-    return theme_changed (infoPtr);
+    return 0;
 
   case WM_DESTROY:
     return MONTHCAL_Destroy(infoPtr);

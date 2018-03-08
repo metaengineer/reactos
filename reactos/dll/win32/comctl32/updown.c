@@ -62,8 +62,6 @@ typedef struct
 #define DEFAULT_ADDBOT       0 /* amount to extend below the buddy window */
 #define DEFAULT_BUDDYBORDER  2 /* Width/height of the buddy border */
 #define DEFAULT_BUDDYSPACER  2 /* Spacer between the buddy and the ctrl */
-#define DEFAULT_BUDDYBORDER_THEMED  1 /* buddy border when theming is enabled */
-#define DEFAULT_BUDDYSPACER_THEMED  0 /* buddy spacer when theming is enabled */
 
 /* Work constants */
 
@@ -169,9 +167,8 @@ static BOOL UPDOWN_HasBuddyBorder(const UPDOWN_INFO *infoPtr)
  */
 static void UPDOWN_GetArrowRect (const UPDOWN_INFO* infoPtr, RECT *rect, int arrow)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->Self);
-    const int border = theme ? DEFAULT_BUDDYBORDER_THEMED : DEFAULT_BUDDYBORDER;
-    const int spacer = theme ? DEFAULT_BUDDYSPACER_THEMED : DEFAULT_BUDDYSPACER;
+    const int border = DEFAULT_BUDDYBORDER;
+    const int spacer = DEFAULT_BUDDYSPACER;
     GetClientRect (infoPtr->Self, rect);
 
     /*
@@ -203,11 +200,11 @@ static void UPDOWN_GetArrowRect (const UPDOWN_INFO* infoPtr, RECT *rect, int arr
         if (arrow & FLAG_INCR)
             rect->left = rect->left + len/2;
         if (arrow & FLAG_DECR)
-            rect->right =  rect->left + len/2 - (theme ? 0 : 1);
+            rect->right =  rect->left + len/2 - 1;
     } else {
         int len = rect->bottom - rect->top + 1; /* compute the height */
         if (arrow & FLAG_INCR)
-            rect->bottom =  rect->top + len/2 - (theme ? 0 : 1);
+            rect->bottom =  rect->top + len/2 - 1;
         if (arrow & FLAG_DECR)
             rect->top =  rect->top + len/2;
     }
@@ -345,30 +342,6 @@ static BOOL UPDOWN_SetBuddyInt (const UPDOWN_INFO *infoPtr)
 }
 
 /***********************************************************************
- * UPDOWN_DrawBuddyBackground
- *
- * Draw buddy background for visual integration.
- */
-static BOOL UPDOWN_DrawBuddyBackground (const UPDOWN_INFO *infoPtr, HDC hdc)
-{
-    RECT br, r;
-    HTHEME buddyTheme = GetWindowTheme (infoPtr->Buddy);
-    if (!buddyTheme) return FALSE;
-
-    GetWindowRect (infoPtr->Buddy, &br);
-    MapWindowPoints (NULL, infoPtr->Self, (POINT*)&br, 2);
-    GetClientRect (infoPtr->Self, &r);
-
-    if (infoPtr->dwStyle & UDS_ALIGNLEFT)
-        br.left = r.left;
-    else if (infoPtr->dwStyle & UDS_ALIGNRIGHT)
-        br.right = r.right;
-    /* FIXME: take disabled etc. into account */
-    DrawThemeBackground (buddyTheme, hdc, 0, 0, &br, NULL);
-    return TRUE;
-}
-
-/***********************************************************************
  * UPDOWN_Draw
  *
  * Draw the arrows. The background need not be erased.
@@ -377,60 +350,37 @@ static LRESULT UPDOWN_Draw (const UPDOWN_INFO *infoPtr, HDC hdc)
 {
     BOOL uPressed, uHot, dPressed, dHot;
     RECT rect;
-    HTHEME theme = GetWindowTheme (infoPtr->Self);
-    int uPart = 0, uState = 0, dPart = 0, dState = 0;
     BOOL needBuddyBg = FALSE;
 
     uPressed = (infoPtr->Flags & FLAG_PRESSED) && (infoPtr->Flags & FLAG_INCR);
     uHot = (infoPtr->Flags & FLAG_INCR) && (infoPtr->Flags & FLAG_MOUSEIN);
     dPressed = (infoPtr->Flags & FLAG_PRESSED) && (infoPtr->Flags & FLAG_DECR);
     dHot = (infoPtr->Flags & FLAG_DECR) && (infoPtr->Flags & FLAG_MOUSEIN);
-    if (theme) {
-        uPart = (infoPtr->dwStyle & UDS_HORZ) ? SPNP_UPHORZ : SPNP_UP;
-        uState = (infoPtr->dwStyle & WS_DISABLED) ? DNS_DISABLED 
-            : (uPressed ? DNS_PRESSED : (uHot ? DNS_HOT : DNS_NORMAL));
-        dPart = (infoPtr->dwStyle & UDS_HORZ) ? SPNP_DOWNHORZ : SPNP_DOWN;
-        dState = (infoPtr->dwStyle & WS_DISABLED) ? DNS_DISABLED 
-            : (dPressed ? DNS_PRESSED : (dHot ? DNS_HOT : DNS_NORMAL));
-        needBuddyBg = IsWindow (infoPtr->Buddy)
-            && (IsThemeBackgroundPartiallyTransparent (theme, uPart, uState)
-              || IsThemeBackgroundPartiallyTransparent (theme, dPart, dState));
-    }
-
+    
     /* Draw the common border between ourselves and our buddy */
     if (UPDOWN_HasBuddyBorder(infoPtr) || needBuddyBg) {
-        if (!theme || !UPDOWN_DrawBuddyBackground (infoPtr, hdc)) {
-            GetClientRect(infoPtr->Self, &rect);
-	    DrawEdge(hdc, &rect, EDGE_SUNKEN,
-		     BF_BOTTOM | BF_TOP |
-		     (infoPtr->dwStyle & UDS_ALIGNLEFT ? BF_LEFT : BF_RIGHT));
-        }
+        GetClientRect(infoPtr->Self, &rect);
+	DrawEdge(hdc, &rect, EDGE_SUNKEN,
+	  BF_BOTTOM | BF_TOP |
+	  (infoPtr->dwStyle & UDS_ALIGNLEFT ? BF_LEFT : BF_RIGHT));
     }
 
     /* Draw the incr button */
     UPDOWN_GetArrowRect (infoPtr, &rect, FLAG_INCR);
-    if (theme) {
-        DrawThemeBackground(theme, hdc, uPart, uState, &rect, NULL);
-    } else {
-        DrawFrameControl(hdc, &rect, DFC_SCROLL,
-            (infoPtr->dwStyle & UDS_HORZ ? DFCS_SCROLLRIGHT : DFCS_SCROLLUP) |
-            ((infoPtr->dwStyle & UDS_HOTTRACK) && uHot ? DFCS_HOT : 0) |
-            (uPressed ? DFCS_PUSHED : 0) |
-            (infoPtr->dwStyle & WS_DISABLED ? DFCS_INACTIVE : 0) );
-    }
-
+    DrawFrameControl(hdc, &rect, DFC_SCROLL,
+        (infoPtr->dwStyle & UDS_HORZ ? DFCS_SCROLLRIGHT : DFCS_SCROLLUP) |
+        ((infoPtr->dwStyle & UDS_HOTTRACK) && uHot ? DFCS_HOT : 0) |
+        (uPressed ? DFCS_PUSHED : 0) |
+        (infoPtr->dwStyle & WS_DISABLED ? DFCS_INACTIVE : 0) );
+    
     /* Draw the decr button */
     UPDOWN_GetArrowRect(infoPtr, &rect, FLAG_DECR);
-    if (theme) {
-        DrawThemeBackground(theme, hdc, dPart, dState, &rect, NULL);
-    } else {
-        DrawFrameControl(hdc, &rect, DFC_SCROLL,
-            (infoPtr->dwStyle & UDS_HORZ ? DFCS_SCROLLLEFT : DFCS_SCROLLDOWN) |
-            ((infoPtr->dwStyle & UDS_HOTTRACK) && dHot ? DFCS_HOT : 0) |
-            (dPressed ? DFCS_PUSHED : 0) |
-            (infoPtr->dwStyle & WS_DISABLED ? DFCS_INACTIVE : 0) );
-    }
-
+    DrawFrameControl(hdc, &rect, DFC_SCROLL,
+        (infoPtr->dwStyle & UDS_HORZ ? DFCS_SCROLLLEFT : DFCS_SCROLLDOWN) |
+        ((infoPtr->dwStyle & UDS_HOTTRACK) && dHot ? DFCS_HOT : 0) |
+        (dPressed ? DFCS_PUSHED : 0) |
+        (infoPtr->dwStyle & WS_DISABLED ? DFCS_INACTIVE : 0) );
+    
     return 0;
 }
 
@@ -607,11 +557,11 @@ static HWND UPDOWN_SetBuddy (UPDOWN_INFO* infoPtr, HWND bud)
     RECT  budRect;  /* new coord for the buddy */
     int   x, width;  /* new x position and width for the up-down */
     WCHAR buddyClass[40];
-    HWND ret;
+    HWND old_buddy;
 
     TRACE("(hwnd=%p, bud=%p)\n", infoPtr->Self, bud);
 
-    ret = infoPtr->Buddy;
+    old_buddy = infoPtr->Buddy;
 
     /* there is already a buddy assigned */
     if (infoPtr->Buddy) RemoveWindowSubclass(infoPtr->Buddy, UPDOWN_Buddy_SubclassProc,
@@ -648,7 +598,7 @@ static HWND UPDOWN_SetBuddy (UPDOWN_INFO* infoPtr, HWND bud)
             x  = budRect.right+DEFAULT_XSEP;
         } else {
             /* nothing to do */
-            return ret;
+            return old_buddy;
         }
 
         /* first adjust the buddy to accommodate the up/down */
@@ -677,14 +627,15 @@ static HWND UPDOWN_SetBuddy (UPDOWN_INFO* infoPtr, HWND bud)
                      budRect.top - DEFAULT_ADDTOP, width,
                      budRect.bottom - budRect.top + DEFAULT_ADDTOP + DEFAULT_ADDBOT,
                      SWP_NOACTIVATE|SWP_FRAMECHANGED|SWP_NOZORDER);
-    } else {
+    } else if (!(infoPtr->dwStyle & UDS_HORZ) && old_buddy != NULL) {
         RECT rect;
         GetWindowRect(infoPtr->Self, &rect);
         MapWindowPoints(HWND_DESKTOP, GetParent(infoPtr->Self), (POINT *)&rect, 2);
         SetWindowPos(infoPtr->Self, 0, rect.left, rect.top, DEFAULT_WIDTH, rect.bottom - rect.top,
                      SWP_NOACTIVATE|SWP_FRAMECHANGED|SWP_NOZORDER);
     }
-    return ret;
+
+    return old_buddy;
 }
 
 /***********************************************************************
@@ -878,9 +829,7 @@ static void UPDOWN_HandleMouseEvent (UPDOWN_INFO *infoPtr, UINT msg, INT x, INT 
 static LRESULT WINAPI UpDownWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UPDOWN_INFO *infoPtr = UPDOWN_GetInfoPtr (hwnd);
-    static const WCHAR themeClass[] = {'S','p','i','n',0};
-    HTHEME theme;
-
+    
     TRACE("hwnd=%p msg=%04x wparam=%08lx lparam=%08lx\n", hwnd, message, wParam, lParam);
 
     if (!infoPtr && (message != WM_CREATE))
@@ -918,8 +867,6 @@ static LRESULT WINAPI UpDownWindowProc(HWND hwnd, UINT message, WPARAM wParam, L
 	    if (infoPtr->dwStyle & UDS_AUTOBUDDY)
 		UPDOWN_SetBuddy (infoPtr, GetWindow (hwnd, GW_HWNDPREV));
 
-	    OpenThemeData (hwnd, themeClass);
-
 	    TRACE("UpDown Ctrl creation, hwnd=%p\n", hwnd);
 	    }
 	    break;
@@ -932,8 +879,6 @@ static LRESULT WINAPI UpDownWindowProc(HWND hwnd, UINT message, WPARAM wParam, L
 	                            BUDDY_SUBCLASSID);
 	    Free (infoPtr);
 	    SetWindowLongPtrW (hwnd, 0, 0);
-            theme = GetWindowTheme (hwnd);
-            CloseThemeData (theme);
 	    TRACE("UpDown Ctrl destruction, hwnd=%p\n", hwnd);
 	    break;
 
@@ -955,11 +900,7 @@ static LRESULT WINAPI UpDownWindowProc(HWND hwnd, UINT message, WPARAM wParam, L
             break;
 
         case WM_THEMECHANGED:
-            theme = GetWindowTheme (hwnd);
-            CloseThemeData (theme);
-            OpenThemeData (hwnd, themeClass);
-            InvalidateRect (hwnd, NULL, FALSE);
-            break;
+            return 0;
 
 	case WM_TIMER:
 	   /* is this the auto-press timer? */

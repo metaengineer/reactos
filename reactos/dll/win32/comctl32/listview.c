@@ -411,8 +411,6 @@ typedef struct tagLISTVIEW_INFO
   TRACE("hwndSelf=%p, rcList=%s\n", iP->hwndSelf, wine_dbgstr_rect(&iP->rcList)); \
 } while(0)
 
-static const WCHAR themeClass[] = {'L','i','s','t','V','i','e','w',0};
-
 /*
  * forward declarations
  */
@@ -9374,25 +9372,6 @@ static BOOL LISTVIEW_SortItems(LISTVIEW_INFO *infoPtr, PFNLVCOMPARE pfnCompare,
 
 /***
  * DESCRIPTION:
- * Update theme handle after a theme change.
- *
- * PARAMETER(S):
- * [I] infoPtr : valid pointer to the listview structure
- *
- * RETURN:
- *   SUCCESS : 0
- *   FAILURE : something else
- */
-static LRESULT LISTVIEW_ThemeChanged(const LISTVIEW_INFO *infoPtr)
-{
-    HTHEME theme = GetWindowTheme(infoPtr->hwndSelf);
-    CloseThemeData(theme);
-    OpenThemeData(infoPtr->hwndSelf, themeClass);
-    return 0;
-}
-
-/***
- * DESCRIPTION:
  * Updates an items or rearranges the listview control.
  *
  * PARAMETER(S):
@@ -9610,8 +9589,6 @@ static LRESULT LISTVIEW_Create(HWND hwnd, const CREATESTRUCTW *lpcs)
     if (infoPtr->dwStyle & LVS_OWNERDRAWFIXED) notify_measureitem(infoPtr);
   }
 
-  OpenThemeData(hwnd, themeClass);
-
   /* initialize the icon sizes */
   set_icon_size(&infoPtr->iconSize, infoPtr->himlNormal, infoPtr->uView != LV_VIEW_ICON);
   set_icon_size(&infoPtr->iconStateSize, infoPtr->himlState, TRUE);
@@ -9631,9 +9608,6 @@ static LRESULT LISTVIEW_Create(HWND hwnd, const CREATESTRUCTW *lpcs)
  */
 static LRESULT LISTVIEW_Destroy(LISTVIEW_INFO *infoPtr)
 {
-    HTHEME theme = GetWindowTheme(infoPtr->hwndSelf);
-    CloseThemeData(theme);
-
     /* delete all items */
     LISTVIEW_DeleteAllItems(infoPtr, TRUE);
 
@@ -10639,43 +10613,7 @@ static LRESULT LISTVIEW_Notify(LISTVIEW_INFO *infoPtr, NMHDR *lpnmhdr)
  */
 static BOOL LISTVIEW_NCPaint(const LISTVIEW_INFO *infoPtr, HRGN region)
 {
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-    HDC dc;
-    RECT r;
-    HRGN cliprgn;
-    int cxEdge = GetSystemMetrics (SM_CXEDGE),
-        cyEdge = GetSystemMetrics (SM_CYEDGE);
-
-    if (!theme)
-       return DefWindowProcW (infoPtr->hwndSelf, WM_NCPAINT, (WPARAM)region, 0);
-
-    GetWindowRect(infoPtr->hwndSelf, &r);
-
-    cliprgn = CreateRectRgn (r.left + cxEdge, r.top + cyEdge,
-        r.right - cxEdge, r.bottom - cyEdge);
-    if (region != (HRGN)1)
-        CombineRgn (cliprgn, cliprgn, region, RGN_AND);
-    OffsetRect(&r, -r.left, -r.top);
-
-#ifdef __REACTOS__ /* r73789 */
-    dc = GetWindowDC(infoPtr->hwndSelf);
-    /* Exclude client part */
-    ExcludeClipRect(dc, r.left + cxEdge, r.top + cyEdge,
-        r.right - cxEdge, r.bottom -cyEdge);
-#else
-    dc = GetDCEx(infoPtr->hwndSelf, region, DCX_WINDOW|DCX_INTERSECTRGN);
-    OffsetRect(&r, -r.left, -r.top);
-#endif
-
-    if (IsThemeBackgroundPartiallyTransparent (theme, 0, 0))
-        DrawThemeParentBackground(infoPtr->hwndSelf, dc, &r);
-    DrawThemeBackground (theme, dc, 0, 0, &r, 0);
-    ReleaseDC(infoPtr->hwndSelf, dc);
-
-    /* Call default proc to get the scrollbars etc. painted */
-    DefWindowProcW (infoPtr->hwndSelf, WM_NCPAINT, (WPARAM)cliprgn, 0);
-
-    return FALSE;
+    return DefWindowProcW (infoPtr->hwndSelf, WM_NCPAINT, (WPARAM)region, 0);
 }
 
 /***
@@ -11814,7 +11752,7 @@ LISTVIEW_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 /*	case WM_TIMER: */
   case WM_THEMECHANGED:
-    return LISTVIEW_ThemeChanged(infoPtr);
+    return 0;
 
   case WM_VSCROLL:
     return LISTVIEW_VScroll(infoPtr, (INT)LOWORD(wParam), 0);

@@ -112,24 +112,16 @@ public:
 
         tbm.cxBarPad = tbm.cyBarPad = 0;
 
-        if (bThemed)
-        {
-            tbm.cxButtonSpacing = 0;
-            tbm.cyButtonSpacing = 0;
-        }
+        if (bHorizontal || uiBtnsPerLine > 1)
+            tbm.cxButtonSpacing = (3 * GetSystemMetrics(SM_CXEDGE) / 2);
         else
-        {
-            if (bHorizontal || uiBtnsPerLine > 1)
-                tbm.cxButtonSpacing = (3 * GetSystemMetrics(SM_CXEDGE) / 2);
-            else
-                tbm.cxButtonSpacing = 0;
+            tbm.cxButtonSpacing = 0;
 
-            if (!bHorizontal || uiRows > 1)
-                tbm.cyButtonSpacing = (3 * GetSystemMetrics(SM_CYEDGE) / 2);
-            else
-                tbm.cyButtonSpacing = 0;
-        }
-
+        if (!bHorizontal || uiRows > 1)
+            tbm.cyButtonSpacing = (3 * GetSystemMetrics(SM_CYEDGE) / 2);
+        else
+            tbm.cyButtonSpacing = 0;
+        
         SetMetrics(&tbm);
 
         return tbm.cxButtonSpacing;
@@ -1285,15 +1277,9 @@ public:
         return EnumWindows(s_EnumWindowsProc, (LPARAM)this);
     }
 
-    LRESULT OnThemeChanged()
-    {
-        return FALSE;
-    }
-
     LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        bHandled=0;
-        return FALSE;
+        return TRUE;
     }
 
     LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

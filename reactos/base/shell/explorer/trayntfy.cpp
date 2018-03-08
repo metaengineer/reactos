@@ -671,15 +671,9 @@ public:
     }
     virtual ~CTrayClockWnd() { }
 
-    LRESULT OnThemeChanged()
-    {
-        return FALSE;
-    }
-
     LRESULT OnThemeChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
     {
-        bHandled=0;
-        return FALSE;
+        return TRUE;
     }
 
     BOOL MeasureLines()

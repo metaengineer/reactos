@@ -63,47 +63,17 @@ typedef struct
 static inline int get_led_size ( const PROGRESS_INFO *infoPtr, LONG style,
                                  const RECT* rect )
 {
-    HTHEME theme = GetWindowTheme (infoPtr->Self);
-    if (theme)
-    {
-        int chunkSize;
-        if (SUCCEEDED( GetThemeInt( theme, 0, 0, TMT_PROGRESSCHUNKSIZE, &chunkSize )))
-            return chunkSize;
-    }
-
     if (style & PBS_VERTICAL)
         return MulDiv (rect->right - rect->left, 2, 3);
     else
         return MulDiv (rect->bottom - rect->top, 2, 3);
 }
 
-/* Helper to obtain gap between progress bar chunks */
-static inline int get_led_gap ( const PROGRESS_INFO *infoPtr )
-{
-    HTHEME theme = GetWindowTheme (infoPtr->Self);
-    if (theme)
-    {
-        int spaceSize;
-        if (SUCCEEDED( GetThemeInt( theme, 0, 0, TMT_PROGRESSSPACESIZE, &spaceSize )))
-            return spaceSize;
-    }
-
-    return LED_GAP;
-}
-
 /* Get client rect. Takes into account that theming needs no adjustment. */
 static inline void get_client_rect (HWND hwnd, RECT* rect)
 {
-    HTHEME theme = GetWindowTheme (hwnd);
     GetClientRect (hwnd, rect);
-    if (!theme)
-        InflateRect(rect, -1, -1);
-    else
-    {
-        DWORD dwStyle = GetWindowLongW (hwnd, GWL_STYLE);
-        int part = (dwStyle & PBS_VERTICAL) ? PP_BARVERT : PP_BAR;
-        GetThemeBackgroundContentRect (theme, 0, part, 0, rect, rect);
-    }
+    InflateRect(rect, -1, -1);
 }
 
 /* Compute the extend of the bar */
@@ -142,7 +112,6 @@ typedef struct tagProgressDrawInfo
     HBRUSH hbrBar;
     HBRUSH hbrBk;
     int ledW, ledGap;
-    HTHEME theme;
     RECT bgRect;
 } ProgressDrawInfo;
 
@@ -232,66 +201,6 @@ static const ProgressDrawProc drawProcClassic[8] = {
     draw_chunk_bar_V, draw_solid_bkg_V,
 };
 
-/* draw themed horizontal bar from 'start' to 'end' */
-static void draw_theme_bar_H (const ProgressDrawInfo* di, int start, int end)
-{
-    RECT r;
-    r.left = di->rect.left + start;
-    r.top = di->rect.top;
-    r.bottom = di->rect.bottom;
-    r.right = di->rect.left + end;
-    DrawThemeBackground (di->theme, di->hdc, PP_CHUNK, 0, &r, NULL);
-}
-
-/* draw themed vertical bar from 'start' to 'end' */
-static void draw_theme_bar_V (const ProgressDrawInfo* di, int start, int end)
-{
-    RECT r;
-    r.left = di->rect.left;
-    r.right = di->rect.right;
-    r.bottom = di->rect.bottom - start;
-    r.top = di->rect.bottom - end;
-    DrawThemeBackground (di->theme, di->hdc, PP_CHUNKVERT, 0, &r, NULL);
-}
-
-/* draw themed horizontal background from 'start' to 'end' */
-static void draw_theme_bkg_H (const ProgressDrawInfo* di, int start, int end)
-{
-    RECT bgrect, r;
-
-    SetRect(&r, di->rect.left + start, di->rect.top, di->rect.left + end, di->rect.bottom);
-    bgrect = di->bgRect;
-    OffsetRect(&bgrect, -bgrect.left, -bgrect.top);
-
-    DrawThemeBackground (di->theme, di->hdc, PP_BAR, 0, &bgrect, &r);
-}
-
-/* draw themed vertical background from 'start' to 'end' */
-static void draw_theme_bkg_V (const ProgressDrawInfo* di, int start, int end)
-{
-    RECT bgrect, r;
-
-    SetRect(&r, di->rect.left, di->rect.bottom - end, di->rect.right, di->rect.bottom - start);
-    bgrect = di->bgRect;
-    OffsetRect(&bgrect, -bgrect.left, -bgrect.top);
-
-    DrawThemeBackground (di->theme, di->hdc, PP_BARVERT, 0, &bgrect, &r);
-}
-
-/* drawing functions for themed style */
-static const ProgressDrawProc drawProcThemed[8] = {
-  /* Smooth */
-    /* Horizontal */
-    draw_theme_bar_H, draw_theme_bkg_H,
-    /* Vertical */
-    draw_theme_bar_V, draw_theme_bkg_V,
-  /* Chunky */
-    /* Horizontal */
-    draw_theme_bar_H, draw_theme_bkg_H,
-    /* Vertical */
-    draw_theme_bar_V, draw_theme_bkg_V,
-};
-
 /***********************************************************************
  * PROGRESS_Draw
  * Draws the progress bar.
@@ -307,7 +216,6 @@ static LRESULT PROGRESS_Draw (PROGRESS_INFO *infoPtr, HDC hdc)
     TRACE("(infoPtr=%p, hdc=%p)\n", infoPtr, hdc);
 
     pdi.hdc = hdc;
-    pdi.theme = GetWindowTheme (infoPtr->Self);
 
     /* get the required bar brush */
     if (infoPtr->ColorBar == CLR_DEFAULT)
@@ -325,42 +233,18 @@ static LRESULT PROGRESS_Draw (PROGRESS_INFO *infoPtr, HDC hdc)
 
     /* get client rectangle */
     GetClientRect (infoPtr->Self, &pdi.rect);
-    if (!pdi.theme) {
-        FrameRect( hdc, &pdi.rect, pdi.hbrBk );
-        InflateRect(&pdi.rect, -1, -1);
-    }
-    else
-    {
-        RECT cntRect;
-        int part = (dwStyle & PBS_VERTICAL) ? PP_BARVERT : PP_BAR;
-        
-        GetThemeBackgroundContentRect (pdi.theme, hdc, part, 0, &pdi.rect, 
-            &cntRect);
-        
-        /* Exclude content rect - content background will be drawn later */
-        ExcludeClipRect (hdc, cntRect.left, cntRect.top, 
-            cntRect.right, cntRect.bottom);
-        if (IsThemeBackgroundPartiallyTransparent (pdi.theme, part, 0))
-            DrawThemeParentBackground (infoPtr->Self, hdc, NULL);
-        DrawThemeBackground (pdi.theme, hdc, part, 0, &pdi.rect, NULL);
-        SelectClipRgn (hdc, NULL);
-        pdi.rect = cntRect;
-    }
-
+    FrameRect( hdc, &pdi.rect, pdi.hbrBk );
+    InflateRect(&pdi.rect, -1, -1);
+    
     /* compute some drawing parameters */
-    barSmooth = (dwStyle & PBS_SMOOTH) && !pdi.theme;
-    drawProcs = &((pdi.theme ? drawProcThemed : drawProcClassic)[(barSmooth ? 0 : 4)
+    barSmooth = dwStyle & PBS_SMOOTH;
+    drawProcs = &(drawProcClassic[(barSmooth ? 0 : 4)
         + ((dwStyle & PBS_VERTICAL) ? 2 : 0)]);
     barSize = get_bar_size( dwStyle, &pdi.rect );
-    if (pdi.theme)
-    {
-        GetWindowRect( infoPtr->Self, &pdi.bgRect );
-        MapWindowPoints( infoPtr->Self, 0, (POINT*)&pdi.bgRect, 2 );
-    }
-
+    
     if (!barSmooth)
         pdi.ledW = get_led_size( infoPtr, dwStyle, &pdi.rect);
-    pdi.ledGap = get_led_gap( infoPtr );
+    pdi.ledGap = LED_GAP;
 
     if (dwStyle & PBS_MARQUEE)
     {
@@ -434,15 +318,15 @@ static void PROGRESS_UpdateMarquee (PROGRESS_INFO *infoPtr)
     LONG style = GetWindowLongW (infoPtr->Self, GWL_STYLE);
     RECT rect;
     int ledWidth, leds;
-    HTHEME theme = GetWindowTheme (infoPtr->Self);
-    BOOL smooth = (style & PBS_SMOOTH) && !theme;
+    
+    BOOL smooth = style & PBS_SMOOTH;
 
     get_client_rect (infoPtr->Self, &rect);
 
     if (smooth)
         ledWidth = 1;
     else
-        ledWidth = get_led_size( infoPtr, style, &rect ) + get_led_gap( infoPtr );
+        ledWidth = get_led_size( infoPtr, style, &rect ) + LED_GAP;
 
     leds = (get_bar_size( style, &rect ) + ledWidth - 1) /
         ledWidth;
@@ -526,8 +410,6 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
                                          WPARAM wParam, LPARAM lParam)
 {
     PROGRESS_INFO *infoPtr;
-    static const WCHAR themeClass[] = {'P','r','o','g','r','e','s','s',0};
-    HTHEME theme;
 
     TRACE("hwnd=%p msg=%04x wparam=%lx lParam=%lx\n", hwnd, message, wParam, lParam);
 
@@ -541,10 +423,8 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
     {
 	DWORD dwExStyle = GetWindowLongW (hwnd, GWL_EXSTYLE);
 
-        theme = OpenThemeData (hwnd, themeClass);
-
 	dwExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
-	if (!theme) dwExStyle |= WS_EX_STATICEDGE;
+	dwExStyle |= WS_EX_STATICEDGE;
         SetWindowLongW (hwnd, GWL_EXSTYLE, dwExStyle);
 	/* Force recalculation of a non-client area */
 	SetWindowPos(hwnd, 0, 0, 0, 0, 0,
@@ -575,8 +455,6 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
         TRACE("Progress Ctrl destruction, hwnd=%p\n", hwnd);
         Free (infoPtr);
         SetWindowLongPtrW(hwnd, 0, 0);
-        theme = GetWindowTheme (hwnd);
-        CloseThemeData (theme);
         return 0;
 
     case WM_ERASEBKGND:
@@ -598,23 +476,7 @@ static LRESULT WINAPI ProgressWindowProc(HWND hwnd, UINT message,
         return 0;
 
     case WM_THEMECHANGED:
-    {
-        DWORD dwExStyle = GetWindowLongW (hwnd, GWL_EXSTYLE);
-        
-        theme = GetWindowTheme (hwnd);
-        CloseThemeData (theme);
-        theme = OpenThemeData (hwnd, themeClass);
-        
-        /* WS_EX_STATICEDGE disappears when the control is themed */
-        if (theme)
-            dwExStyle &= ~WS_EX_STATICEDGE;
-        else
-            dwExStyle |= WS_EX_STATICEDGE;
-        SetWindowLongW (hwnd, GWL_EXSTYLE, dwExStyle);
-        
-        InvalidateRect (hwnd, NULL, FALSE);
         return 0;
-    }
 
     case PBM_DELTAPOS:
     {

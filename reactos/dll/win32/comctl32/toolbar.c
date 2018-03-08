@@ -233,8 +233,6 @@ typedef enum
 #define GETHOTIMAGELIST(infoPtr, id) TOOLBAR_GetImageList(infoPtr->himlHot, infoPtr->cimlHot, id)
 #define GETDISIMAGELIST(infoPtr, id) TOOLBAR_GetImageList(infoPtr->himlDis, infoPtr->cimlDis, id)
 
-static const WCHAR themeClass[] = { 'T','o','o','l','b','a','r',0 };
-
 static BOOL TOOLBAR_GetButtonInfo(const TOOLBAR_INFO *infoPtr, NMTOOLBARW *nmtb);
 static BOOL TOOLBAR_IsButtonRemovable(const TOOLBAR_INFO *infoPtr, int iItem, const CUSTOMBUTTON *btnInfo);
 static HIMAGELIST TOOLBAR_GetImageList(const PIMLENTRY *pies, INT cies, INT id);
@@ -616,9 +614,6 @@ TOOLBAR_DrawString (const TOOLBAR_INFO *infoPtr, RECT *rcText, LPCWSTR lpText,
     COLORREF clrOldBk = 0;
     int oldBkMode = 0;
     UINT state = tbcd->nmcd.uItemState;
-#ifdef __REACTOS__
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-#endif
 
     /* draw text */
     if (lpText && infoPtr->nMaxTextRows > 0) {
@@ -648,25 +643,6 @@ TOOLBAR_DrawString (const TOOLBAR_INFO *infoPtr, RECT *rcText, LPCWSTR lpText,
 	    clrOld = SetTextColor (hdc, tbcd->clrText);
 	}
 
-#ifdef __REACTOS__
-    if (theme)
-    {
-        int partId = TP_BUTTON;
-        int stateId = TS_NORMAL;
-
-        if (state & CDIS_DISABLED)
-            stateId = TS_DISABLED;
-        else if (state & CDIS_SELECTED)
-            stateId = TS_PRESSED;
-        else if (state & CDIS_CHECKED)
-            stateId = (state & CDIS_HOT) ? TS_HOTCHECKED : TS_HOT;
-        else if (state & CDIS_HOT)
-            stateId = TS_HOT;
-
-        DrawThemeText(theme, hdc, partId, stateId, lpText, -1, infoPtr->dwDTFlags, 0, rcText);
-    }
-    else
-#endif
 	DrawTextW (hdc, lpText, -1, rcText, infoPtr->dwDTFlags);
 	SetTextColor (hdc, clrOld);
 	if ((state & CDIS_MARKED) && !(dwItemCDFlag & TBCDRF_NOMARK))
@@ -798,7 +774,7 @@ TOOLBAR_DrawImage(const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, INT left, I
     }
     else if (tbcd->nmcd.uItemState & CDIS_CHECKED ||
       ((tbcd->nmcd.uItemState & CDIS_HOT) 
-      && ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf))))
+      && (infoPtr->dwStyle & TBSTYLE_FLAT)))
     {
         /* if hot, attempt to draw with hot image list, if fails, 
            use default image list */
@@ -943,20 +919,12 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
     INT oldBkMode;
     DWORD dwItemCustDraw;
     DWORD dwItemCDFlag;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
 
     rc = btnPtr->rect;
     rcArrow = rc;
 
     /* separator - doesn't send NM_CUSTOMDRAW */
     if (btnPtr->fsStyle & BTNS_SEP) {
-        if (theme)
-        {
-            DrawThemeBackground (theme, hdc, 
-                (dwStyle & CCS_VERT) ? TP_SEPARATORVERT : TP_SEPARATOR, 0, 
-                &rc, NULL);
-        }
-        else
         /* with the FLAT style, iBitmap is the width and has already */
         /* been taken into consideration in calculating the width    */
         /* so now we need to draw the vertical separator             */
@@ -1097,7 +1065,7 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
         ((tbcd.nmcd.uItemState & CDIS_CHECKED) || (tbcd.nmcd.uItemState & CDIS_INDETERMINATE)))
         TOOLBAR_DrawPattern (&rc, &tbcd);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) 
         && (tbcd.nmcd.uItemState & CDIS_HOT))
     {
         if ( dwItemCDFlag & TBCDRF_HILITEHOTTRACK )
@@ -1112,55 +1080,11 @@ TOOLBAR_DrawButton (const TOOLBAR_INFO *infoPtr, TBUTTON_INFO *btnPtr, HDC hdc, 
         }
     }
 
-#ifdef __REACTOS__
-    if (theme && !(dwItemCDFlag & TBCDRF_NOBACKGROUND))
-#else
-    if (theme)
-#endif
-    {
-        int partId = drawSepDropDownArrow ? TP_SPLITBUTTON : TP_BUTTON;
-        int stateId = TS_NORMAL;
-        
-        if (tbcd.nmcd.uItemState & CDIS_DISABLED)
-            stateId = TS_DISABLED;
-        else if (tbcd.nmcd.uItemState & CDIS_SELECTED)
-            stateId = TS_PRESSED;
-        else if (tbcd.nmcd.uItemState & CDIS_CHECKED)
-            stateId = (tbcd.nmcd.uItemState & CDIS_HOT) ? TS_HOTCHECKED : TS_HOT;
-        else if ((tbcd.nmcd.uItemState & CDIS_HOT)
-            || (drawSepDropDownArrow && btnPtr->bDropDownPressed))
-            stateId = TS_HOT;
-            
-        DrawThemeBackground (theme, hdc, partId, stateId, &rc, NULL);
-    }
-
-#ifdef __REACTOS__
-    if (!theme)
-#else
-    else
-#endif
-        TOOLBAR_DrawFrame(infoPtr, &tbcd, &rc, dwItemCDFlag);
+    TOOLBAR_DrawFrame(infoPtr, &tbcd, &rc, dwItemCDFlag);
 
     if (drawSepDropDownArrow)
     {
-        if (theme)
-        {
-            int stateId = TS_NORMAL;
-            
-            if (tbcd.nmcd.uItemState & CDIS_DISABLED)
-                stateId = TS_DISABLED;
-            else if (btnPtr->bDropDownPressed || (tbcd.nmcd.uItemState & CDIS_SELECTED))
-                stateId = TS_PRESSED;
-            else if (tbcd.nmcd.uItemState & CDIS_CHECKED)
-                stateId = (tbcd.nmcd.uItemState & CDIS_HOT) ? TS_HOTCHECKED : TS_HOT;
-            else if (tbcd.nmcd.uItemState & CDIS_HOT)
-                stateId = TS_HOT;
-                
-            DrawThemeBackground (theme, hdc, TP_DROPDOWNBUTTON, stateId, &rcArrow, NULL);
-            DrawThemeBackground (theme, hdc, TP_SPLITBUTTONDROPDOWN, stateId, &rcArrow, NULL);
-        }
-        else
-            TOOLBAR_DrawSepDDArrow(infoPtr, &tbcd, &rcArrow, btnPtr->bDropDownPressed, dwItemCDFlag);
+        TOOLBAR_DrawSepDDArrow(infoPtr, &tbcd, &rcArrow, btnPtr->bDropDownPressed, dwItemCDFlag);
     }
 
     oldBkMode = SetBkMode (hdc, tbcd.nStringBkMode);
@@ -2063,17 +1987,6 @@ TOOLBAR_RelayEvent (HWND hwndTip, HWND hwndMsg, UINT uMsg,
 
     SendMessageW (hwndTip, TTM_RELAYEVENT, 0, (LPARAM)&msg);
 }
-
-#ifdef __REACTOS__
-static LRESULT
-TOOLBAR_ThemeChanged(HWND hwnd)
-{
-    HTHEME theme = GetWindowTheme(hwnd);
-    CloseThemeData(theme);
-    OpenThemeData(hwnd, themeClass);
-    return 0;
-}
-#endif
 
 static void
 TOOLBAR_TooltipAddTool(const TOOLBAR_INFO *infoPtr, const TBUTTON_INFO *button)
@@ -3578,7 +3491,7 @@ TOOLBAR_GetHotImageList (const TOOLBAR_INFO *infoPtr, WPARAM wParam)
 static LRESULT
 TOOLBAR_GetHotItem (const TOOLBAR_INFO *infoPtr)
 {
-    if (!((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)))
+    if (!(infoPtr->dwStyle & TBSTYLE_FLAT))
 	return -1;
 
     if (infoPtr->nHotItem < 0)
@@ -5464,8 +5377,6 @@ TOOLBAR_Create (HWND hwnd, const CREATESTRUCTW *lpcs)
     SystemParametersInfoW (SPI_GETICONTITLELOGFONT, 0, &logFont, 0);
     infoPtr->hFont = infoPtr->hDefaultFont = CreateFontIndirectW (&logFont);
     
-    OpenThemeData (hwnd, themeClass);
-
     TOOLBAR_CheckStyle (infoPtr);
 
     return 0;
@@ -5509,8 +5420,6 @@ TOOLBAR_Destroy (TOOLBAR_INFO *infoPtr)
     /* delete default font */
     DeleteObject (infoPtr->hDefaultFont);
         
-    CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
-
     /* free toolbar info data */
     SetWindowLongPtrW (infoPtr->hwndSelf, 0, 0);
     Free (infoPtr);
@@ -5525,7 +5434,6 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     NMTBCUSTOMDRAW tbcd;
     INT ret = FALSE;
     DWORD ntfret;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     DWORD dwEraseCustDraw = 0;
 
     /* the app has told us not to redraw the toolbar */
@@ -5555,7 +5463,7 @@ TOOLBAR_EraseBackground (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     /* If the toolbar is "transparent" then pass the WM_ERASEBKGND up
      * to my parent for processing.
      */
-    if (theme || (infoPtr->dwStyle & TBSTYLE_TRANSPARENT)) {
+    if (infoPtr->dwStyle & TBSTYLE_TRANSPARENT) {
 	POINT pt, ptorig;
 	HDC hdc = (HDC)wParam;
 	HWND parent;
@@ -6104,7 +6012,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
     if ((infoPtr->dwStyle & TBSTYLE_TOOLTIPS) && (infoPtr->hwndToolTip == NULL))
         TOOLBAR_TooltipCreateControl(infoPtr);
     
-    if ((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) {
+    if (infoPtr->dwStyle & TBSTYLE_FLAT) {
         /* fill in the TRACKMOUSEEVENT struct */
         trackinfo.cbSize = sizeof(TRACKMOUSEEVENT);
         trackinfo.dwFlags = TME_QUERY;
@@ -6132,8 +6040,7 @@ TOOLBAR_MouseMove (TOOLBAR_INFO *infoPtr, WPARAM wParam, LPARAM lParam)
 
     nHit = TOOLBAR_InternalHitTest (infoPtr, &pt, &button);
 
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && (!infoPtr->bAnchor || button))
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) && (!infoPtr->bAnchor || button))
         TOOLBAR_SetHotItemEx(infoPtr, button ? nHit : TOOLBAR_NOWHERE, HICF_MOUSE);
 
     if (infoPtr->nOldHit != nHit)
@@ -6263,8 +6170,7 @@ TOOLBAR_NCCreate (HWND hwnd, WPARAM wParam, const CREATESTRUCTW *lpcs)
      *    (Guy Albertelli   9/2001)
      *
      */
-    if (((infoPtr->dwStyle & TBSTYLE_FLAT) || GetWindowTheme (infoPtr->hwndSelf)) 
-        && !(lpcs->style & TBSTYLE_TRANSPARENT))
+    if ((infoPtr->dwStyle & TBSTYLE_FLAT) && !(lpcs->style & TBSTYLE_TRANSPARENT))
 	styleadd |= TBSTYLE_TRANSPARENT;
     if (!(lpcs->style & (CCS_TOP | CCS_NOMOVEY))) {
 	styleadd |= CCS_TOP;   /* default to top */
@@ -6648,17 +6554,6 @@ TOOLBAR_SysColorChange (void)
 
     return 0;
 }
-
-#ifndef __REACTOS__
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT theme_changed (HWND hwnd)
-{
-    HTHEME theme = GetWindowTheme (hwnd);
-    CloseThemeData (theme);
-    OpenThemeData (hwnd, themeClass);
-    return 0;
-}
-#endif
 
 static LRESULT WINAPI
 ToolbarWindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -7058,11 +6953,7 @@ ToolbarWindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	    return TOOLBAR_SysColorChange ();
             
         case WM_THEMECHANGED:
-#ifdef __REACTOS__
-        return TOOLBAR_ThemeChanged(hwnd);
-#else
-            return theme_changed (hwnd);
-#endif
+            return 0;
 
 /*	case WM_WININICHANGE: */
 

@@ -285,8 +285,6 @@ static const char * const band_maskname[] = {
 
 static CHAR line[200];
 
-static const WCHAR themeClass[] = { 'R','e','b','a','r',0 };
-
 static CHAR *
 REBAR_FmtStyle( UINT style)
 {
@@ -545,7 +543,6 @@ REBAR_DrawBand (HDC hdc, const REBAR_INFO *infoPtr, REBAR_BAND *lpBand)
     HFONT hOldFont = 0;
     INT oldBkMode = 0;
     NMCUSTOMDRAW nmcd;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
     RECT rcBand;
 
     translate_rect(infoPtr, &rcBand, &lpBand->rcBand);
@@ -575,17 +572,7 @@ REBAR_DrawBand (HDC hdc, const REBAR_INFO *infoPtr, REBAR_BAND *lpBand)
     /* draw gripper */
     if (lpBand->fDraw & DRAW_GRIPPER)
     {
-        if (theme)
-        {
-            RECT rcGripper = lpBand->rcGripper;
-            int partId = (infoPtr->dwStyle & CCS_VERT) ? RP_GRIPPERVERT : RP_GRIPPER;
-            GetThemeBackgroundExtent (theme, hdc, partId, 0, &rcGripper, &rcGripper);
-            OffsetRect (&rcGripper, lpBand->rcGripper.left - rcGripper.left,
-                lpBand->rcGripper.top - rcGripper.top);
-            DrawThemeBackground (theme, hdc, partId, 0, &rcGripper, NULL);
-        }
-        else
-            DrawEdge (hdc, &lpBand->rcGripper, BDR_RAISEDINNER, BF_RECT | BF_MIDDLE);
+        DrawEdge (hdc, &lpBand->rcGripper, BDR_RAISEDINNER, BF_RECT | BF_MIDDLE);
     }
 
     /* draw caption image */
@@ -623,32 +610,18 @@ REBAR_DrawBand (HDC hdc, const REBAR_INFO *infoPtr, REBAR_BAND *lpBand)
 
     if (!IsRectEmpty(&lpBand->rcChevron))
     {
-        if (theme)
+        if (lpBand->fDraw & DRAW_CHEVRONPUSHED)
         {
-            int stateId; 
-            if (lpBand->fDraw & DRAW_CHEVRONPUSHED)
-                stateId = CHEVS_PRESSED;
-            else if (lpBand->fDraw & DRAW_CHEVRONHOT)
-                stateId = CHEVS_HOT;
-            else
-                stateId = CHEVS_NORMAL;
-            DrawThemeBackground (theme, hdc, RP_CHEVRON, stateId, &lpBand->rcChevron, NULL);
+            DrawEdge(hdc, &lpBand->rcChevron, BDR_SUNKENOUTER, BF_RECT | BF_MIDDLE);
+            REBAR_DrawChevron(hdc, lpBand->rcChevron.left+1, lpBand->rcChevron.top + 11, COLOR_WINDOWFRAME);
+        }
+        else if (lpBand->fDraw & DRAW_CHEVRONHOT)
+        {
+            DrawEdge(hdc, &lpBand->rcChevron, BDR_RAISEDINNER, BF_RECT | BF_MIDDLE);
+            REBAR_DrawChevron(hdc, lpBand->rcChevron.left, lpBand->rcChevron.top + 10, COLOR_WINDOWFRAME);
         }
         else
-        {
-            if (lpBand->fDraw & DRAW_CHEVRONPUSHED)
-            {
-                DrawEdge(hdc, &lpBand->rcChevron, BDR_SUNKENOUTER, BF_RECT | BF_MIDDLE);
-                REBAR_DrawChevron(hdc, lpBand->rcChevron.left+1, lpBand->rcChevron.top + 11, COLOR_WINDOWFRAME);
-            }
-            else if (lpBand->fDraw & DRAW_CHEVRONHOT)
-            {
-                DrawEdge(hdc, &lpBand->rcChevron, BDR_RAISEDINNER, BF_RECT | BF_MIDDLE);
-                REBAR_DrawChevron(hdc, lpBand->rcChevron.left, lpBand->rcChevron.top + 10, COLOR_WINDOWFRAME);
-            }
-            else
-                REBAR_DrawChevron(hdc, lpBand->rcChevron.left, lpBand->rcChevron.top + 10, COLOR_WINDOWFRAME);
-        }
+            REBAR_DrawChevron(hdc, lpBand->rcChevron.left, lpBand->rcChevron.top + 10, COLOR_WINDOWFRAME);
     }
 
     if (lpBand->uCDret == (CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYITEMDRAW)) {
@@ -1817,7 +1790,6 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
     INT oldrow;
     RECT cr;
     COLORREF old = CLR_NONE, new;
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
 #ifdef __REACTOS__
     HRGN hrgn;
 #endif
@@ -1825,18 +1797,7 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
     GetClientRect (infoPtr->hwndSelf, &cr);
 
 #ifdef __REACTOS__
-
-    if (theme)
-    {
-        if (IsThemeBackgroundPartiallyTransparent(theme, RP_BACKGROUND, 0))
-        {
-            DrawThemeParentBackground (infoPtr->hwndSelf, hdc, &cr);
-        }
-        DrawThemeBackground (theme, hdc, 0, 0, &cr, NULL);
-    }
-
     hrgn = CreateRectRgn(cr.left, cr.top, cr.right, cr.bottom);
-
 #endif
 
     oldrow = -1;
@@ -1864,18 +1825,12 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
 		if (infoPtr->dwStyle & CCS_VERT) {
 		    rcRowSep.right += SEP_WIDTH_SIZE;
 		    rcRowSep.bottom = infoPtr->calcSize.cx;
-                    if (theme)
-                        DrawThemeEdge (theme, hdc, RP_BAND, 0, &rcRowSep, EDGE_ETCHED, BF_RIGHT, NULL);
-                    else
-		        DrawEdge (hdc, &rcRowSep, EDGE_ETCHED, BF_RIGHT);
+                    DrawEdge (hdc, &rcRowSep, EDGE_ETCHED, BF_RIGHT);
 		}
 		else {
 		    rcRowSep.bottom += SEP_WIDTH_SIZE;
 		    rcRowSep.right = infoPtr->calcSize.cx;
-                    if (theme)
-                        DrawThemeEdge (theme, hdc, RP_BAND, 0, &rcRowSep, EDGE_ETCHED, BF_BOTTOM, NULL);
-                    else
-		        DrawEdge (hdc, &rcRowSep, EDGE_ETCHED, BF_BOTTOM);
+                    DrawEdge (hdc, &rcRowSep, EDGE_ETCHED, BF_BOTTOM);
 		}
                 TRACE ("drawing band separator bottom (%s)\n",
                        wine_dbgstr_rect(&rcRowSep));
@@ -1895,10 +1850,7 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
 #ifdef __REACTOS__
         rcBandReal.top -= SEP_WIDTH_SIZE;
 #endif
-                if (theme)
-                    DrawThemeEdge (theme, hdc, RP_BAND, 0, &rcSep, EDGE_ETCHED, BF_BOTTOM, NULL);
-                else
-		    DrawEdge (hdc, &rcSep, EDGE_ETCHED, BF_BOTTOM);
+                DrawEdge (hdc, &rcSep, EDGE_ETCHED, BF_BOTTOM);
 	    }
 	    else {
                 rcSep.right = rcSep.left;
@@ -1906,10 +1858,7 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
 #ifdef __REACTOS__
         rcBandReal.left -= SEP_WIDTH_SIZE;
 #endif
-                if (theme)
-                    DrawThemeEdge (theme, hdc, RP_BAND, 0, &rcSep, EDGE_ETCHED, BF_RIGHT, NULL);
-                else
-		    DrawEdge (hdc, &rcSep, EDGE_ETCHED, BF_RIGHT);
+                DrawEdge (hdc, &rcSep, EDGE_ETCHED, BF_RIGHT);
 	    }
             TRACE("drawing band separator right (%s)\n",
                   wine_dbgstr_rect(&rcSep));
@@ -1936,28 +1885,15 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
 #endif
 	}
 
-#ifdef __REACTOS__
-        if (!theme)
-#else
-        if (theme)
-        {
-            /* When themed, the background color is ignored (but not a
-             * background bitmap */
-            DrawThemeBackground (theme, hdc, 0, 0, &cr, &rcBand);
-        }
-        else
-#endif
-        {
-            old = SetBkColor (hdc, new);
-            TRACE("%s background color=0x%06x, band %s\n",
-                  (lpBand->clrBack == CLR_NONE) ? "none" :
-                    ((lpBand->clrBack == CLR_DEFAULT) ? "dft" : ""),
-                  GetBkColor(hdc), wine_dbgstr_rect(&rcBand));
-            ExtTextOutW (hdc, 0, 0, ETO_OPAQUE, &rcBand, NULL, 0, 0);
-            if (lpBand->clrBack != CLR_NONE)
-                SetBkColor (hdc, old);
-        }
-
+        old = SetBkColor (hdc, new);
+        TRACE("%s background color=0x%06x, band %s\n",
+              (lpBand->clrBack == CLR_NONE) ? "none" :
+              ((lpBand->clrBack == CLR_DEFAULT) ? "dft" : ""),
+              GetBkColor(hdc), wine_dbgstr_rect(&rcBand));
+        ExtTextOutW (hdc, 0, 0, ETO_OPAQUE, &rcBand, NULL, 0, 0);
+        if (lpBand->clrBack != CLR_NONE)
+            SetBkColor (hdc, old);
+  
 #ifdef __REACTOS__
         hrgnBand = CreateRectRgn(rcBandReal.left, rcBandReal.top, rcBandReal.right, rcBandReal.bottom);
         CombineRgn(hrgn, hrgn, hrgnBand, RGN_DIFF);
@@ -1965,18 +1901,13 @@ static LRESULT REBAR_EraseBkGnd (const REBAR_INFO *infoPtr, HDC hdc)
 #endif
     }
 
-#if 1
-#ifdef __REACTOS__
-    if (!theme)
-#endif
+    //FIXME: Apparently painting the remaining area is a v6 feature
     {
-        //FIXME: Apparently painting the remaining area is a v6 feature
         HBRUSH hbrush = CreateSolidBrush(new);
         FillRgn(hdc, hrgn, hbrush);
         DeleteObject(hbrush);
     }
     DeleteObject(hrgn);
-#endif
     return TRUE;
 }
 
@@ -2984,13 +2915,6 @@ REBAR_Create (REBAR_INFO *infoPtr, LPCREATESTRUCTW cs)
     }
 
     TRACE("created!\n");
-
-    if (OpenThemeData (infoPtr->hwndSelf, themeClass))
-    {
-        /* native seems to clear WS_BORDER when themed */
-        infoPtr->dwStyle &= ~WS_BORDER;
-    }
-
     return 0;
 }
 
@@ -3024,8 +2948,6 @@ REBAR_Destroy (REBAR_INFO *infoPtr)
     if (infoPtr->hDefaultFont) DeleteObject (infoPtr->hDefaultFont);
     SetWindowLongPtrW (infoPtr->hwndSelf, 0, 0);
     
-    CloseThemeData (GetWindowTheme (infoPtr->hwndSelf));
-
     /* free rebar info data */
     Free (infoPtr);
     TRACE("destroyed!\n");
@@ -3260,22 +3182,11 @@ REBAR_MouseMove (REBAR_INFO *infoPtr, LPARAM lParam)
 static inline LRESULT
 REBAR_NCCalcSize (const REBAR_INFO *infoPtr, RECT *rect)
 {
-    HTHEME theme;
-
     if (infoPtr->dwStyle & WS_BORDER) {
         rect->left   = min(rect->left + GetSystemMetrics(SM_CXEDGE), rect->right);
         rect->right  = max(rect->right - GetSystemMetrics(SM_CXEDGE), rect->left);
         rect->top    = min(rect->top + GetSystemMetrics(SM_CYEDGE), rect->bottom);
         rect->bottom = max(rect->bottom - GetSystemMetrics(SM_CYEDGE), rect->top);
-    }
-    else if ((theme = GetWindowTheme (infoPtr->hwndSelf)))
-    {
-        /* FIXME: should use GetThemeInt */
-#ifdef __REACTOS__
-        rect->top = (rect->top + 1 < rect->bottom) ? rect->top : rect->bottom;
-#else
-        rect->top = min(rect->top + 1, rect->bottom);
-#endif
     }
     TRACE("new client=(%s)\n", wine_dbgstr_rect(rect));
     return 0;
@@ -3396,8 +3307,7 @@ REBAR_NCPaint (const REBAR_INFO *infoPtr)
 {
     RECT rcWindow;
     HDC hdc;
-    HTHEME theme;
-
+    
     if (infoPtr->dwStyle & WS_MINIMIZE)
 	return 0; /* Nothing to do */
 
@@ -3411,17 +3321,6 @@ REBAR_NCPaint (const REBAR_INFO *infoPtr)
         TRACE("rect (%s)\n", wine_dbgstr_rect(&rcWindow));
 	DrawEdge (hdc, &rcWindow, EDGE_ETCHED, BF_RECT);
 	ReleaseDC( infoPtr->hwndSelf, hdc );
-    }
-    else if ((theme = GetWindowTheme (infoPtr->hwndSelf)))
-    {
-        /* adjust rectangle and draw the necessary edge */
-        if (!(hdc = GetDCEx( infoPtr->hwndSelf, 0, DCX_USESTYLE | DCX_WINDOW )))
-            return 0;
-        GetWindowRect (infoPtr->hwndSelf, &rcWindow);
-        OffsetRect (&rcWindow, -rcWindow.left, -rcWindow.top);
-        TRACE("rect (%s)\n", wine_dbgstr_rect(&rcWindow));
-        DrawThemeEdge (theme, hdc, 0, 0, &rcWindow, BDR_RAISEDINNER, BF_TOP, NULL);
-        ReleaseDC( infoPtr->hwndSelf, hdc );
     }
 
     return 0;
@@ -3578,26 +3477,11 @@ REBAR_StyleChanged (REBAR_INFO *infoPtr, INT nType, const STYLESTRUCT *lpStyle)
     if (nType == GWL_STYLE)
     {
         infoPtr->orgStyle = infoPtr->dwStyle = lpStyle->styleNew;
-        if (GetWindowTheme (infoPtr->hwndSelf))
-            infoPtr->dwStyle &= ~WS_BORDER;
         /* maybe it should be COMMON_STYLES like in toolbar */
         if ((lpStyle->styleNew ^ lpStyle->styleOld) & CCS_VERT)
             REBAR_Layout(infoPtr);
     }
     return FALSE;
-}
-
-/* update theme after a WM_THEMECHANGED message */
-static LRESULT theme_changed (REBAR_INFO* infoPtr)
-{
-    HTHEME theme = GetWindowTheme (infoPtr->hwndSelf);
-    CloseThemeData (theme);
-    theme = OpenThemeData (infoPtr->hwndSelf, themeClass);
-    /* WS_BORDER disappears when theming is enabled and reappears when
-     * disabled... */
-    infoPtr->dwStyle &= ~WS_BORDER;
-    infoPtr->dwStyle |= theme ? 0 : (infoPtr->orgStyle & WS_BORDER);
-    return 0;
 }
 
 static LRESULT
@@ -3816,7 +3700,7 @@ REBAR_WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	    return REBAR_StyleChanged (infoPtr, wParam, (LPSTYLESTRUCT)lParam);
 
         case WM_THEMECHANGED:
-            return theme_changed (infoPtr);
+            return 0;
 
         case WM_SYSCOLORCHANGE:
             COMCTL32_RefreshSysColors();
