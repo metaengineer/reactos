@@ -140,11 +140,11 @@ FsRecFsControl(IN PDEVICE_OBJECT DeviceObject,
             Status = FsRecVfatFsControl(DeviceObject, Irp);
             break;
 
-        case FS_TYPE_NTFS:
+        /*case FS_TYPE_NTFS:
 
-            /* Send NTFS command */
+            // Send NTFS command
             Status = FsRecNtfsFsControl(DeviceObject, Irp);
-            break;
+            break;*/
 
         case FS_TYPE_CDFS:
 
@@ -152,35 +152,35 @@ FsRecFsControl(IN PDEVICE_OBJECT DeviceObject,
             Status = FsRecCdfsFsControl(DeviceObject, Irp);
             break;
 
-        case FS_TYPE_UDFS:
+        /*case FS_TYPE_UDFS:
 
-            /* Send UDFS command */
+            // Send UDFS command
             Status = FsRecUdfsFsControl(DeviceObject, Irp);
             break;
 
         case FS_TYPE_EXT2:
 
-            /* Send EXT2 command */
+            // Send EXT2 command
             Status = FsRecExt2FsControl(DeviceObject, Irp);
             break;
 
         case FS_TYPE_BTRFS:
 
-            /* Send BTRFS command */
+            // Send BTRFS command
             Status = FsRecBtrfsFsControl(DeviceObject, Irp);
             break;
 
         case FS_TYPE_REISERFS:
 
-            /* Send REISERFS command */
+            // Send REISERFS command
             Status = FsRecReiserfsFsControl(DeviceObject, Irp);
             break;
 
         case FS_TYPE_FFS:
 
-            /* Send FFS command */
+            // Send FFS command
             Status = FsRecFfsFsControl(DeviceObject, Irp);
-            break;
+            break;*/
 
         default:
 
@@ -316,7 +316,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
 {
     ULONG DeviceCount = 0;
     NTSTATUS Status;
-    PDEVICE_OBJECT UdfsObject;
+    // PDEVICE_OBJECT UdfsObject;
     PAGED_CODE();
 
     UNREFERENCED_PARAMETER(RegistryPath);
@@ -340,7 +340,8 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
     DriverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = FsRecFsControl;
     DriverObject->DriverUnload = FsRecUnload;
 
-    /* Register CDFS */
+    /* 
+    // Register CDFS
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -350,7 +351,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_CD_ROM_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register UDFS for CDs */
+    // Register UDFS for CDs
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              &UdfsObject,
@@ -360,7 +361,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_CD_ROM_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register UDFS for HDDs */
+    // Register UDFS for HDDs
     Status = FsRecRegisterFs(DriverObject,
                              UdfsObject,
                              NULL,
@@ -369,6 +370,8 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FS_TYPE_UDFS,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
+
+    */
 
     /* Register FAT */
     Status = FsRecRegisterFs(DriverObject,
@@ -380,7 +383,8 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register NTFS */
+    /* 
+    // Register NTFS
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -390,7 +394,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register EXT2 */
+    // Register EXT2
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -400,7 +404,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register BTRFS */
+    // Register BTRFS
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -410,7 +414,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register REISERFS */
+    // Register REISERFS
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -420,7 +424,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
 
-    /* Register FFS */
+    // Register FFS
     Status = FsRecRegisterFs(DriverObject,
                              NULL,
                              NULL,
@@ -429,6 +433,7 @@ DriverEntry(IN PDRIVER_OBJECT DriverObject,
                              FS_TYPE_FFS,
                              FILE_DEVICE_DISK_FILE_SYSTEM);
     if (NT_SUCCESS(Status)) DeviceCount++;
+    */
 
     /* Return appropriate Status */
     return (DeviceCount > 0) ? STATUS_SUCCESS : STATUS_IMAGE_ALREADY_LOADED;
