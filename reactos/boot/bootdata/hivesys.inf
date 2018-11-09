@@ -1455,7 +1455,7 @@ HKLM,"SYSTEM\CurrentControlSet\Control\Session Manager\SubSystems","Required",0x
 HKLM,"SYSTEM\CurrentControlSet\Control\Session Manager\SubSystems","Windows",0x00020000,"%SystemRoot%\system32\csrss.exe ObjectDirectory=\Windows SharedSection=1024,12288,512 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ProfileControl=Off MaxRequestThreads=16"
 
 ; This is an empty App Compat cache
-HKLM,"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache","AppCompatCache", 0x00000001, \
+; HKLM,"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache","AppCompatCache", 0x00000001, \
   fe,0f,dc,ba,00,00,00,00
 
 ; WOW Support

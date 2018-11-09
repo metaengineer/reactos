@@ -381,7 +381,7 @@ HKLM,"SOFTWARE\Microsoft\Command Processor","AutoRun",0x00020000,""
 HKLM,"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",,0x00000012
 
 ; Empty App Compat Layers
-HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers","",0x00000000,""
+; HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers","",0x00000000,""
 
 ; Version Information
 HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion","InstallDate",0x00010003,0
@@ -1687,7 +1687,7 @@ HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows","TransmissionRetryTi
 HKLM,"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows","USERProcessHandleQuota",0x00010001,0x2710
 
 ; App Compat -- Disable on ReactOS
-HKLM,"SOFTWARE\Policies\Microsoft\Windows\AppCompat","DisableEngine",0x00010003, 0x00000001
+; HKLM,"SOFTWARE\Policies\Microsoft\Windows\AppCompat","DisableEngine",0x00010003, 0x00000001
 
 ;-------------------------------- STRINGS -------------------------------
 
